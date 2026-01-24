@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dermo Care - Patient Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --primary: #F8C6B9;
+            --background-light: #FDFCFB;
+            --background-dark: #1A1614;
+            --secondary: #7A869A;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-active {
+            @apply text-slate-900 border-b-2 border-primary font-bold;
+        }
+    </style>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#F8C6B9",
+                        "background-light": "#FDFCFB",
+                        "background-dark": "#1A1614",
+                        secondary: "#7A869A",
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen">
+<div class="h-12 w-full flex items-center justify-between px-8 pt-4">
+<span class="text-xs font-bold">9:41</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="material-symbols-outlined text-sm">battery_full</span>
+</div>
+</div>
+<main class="max-w-md mx-auto px-6 pb-32">
+<header class="mt-4 mb-6 flex justify-between items-center">
+<button class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center ios-shadow border border-slate-50 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold">Patient Profile</h1>
+<button class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center ios-shadow border border-slate-50 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">more_horiz</span>
+</button>
+</header>
+<section class="mb-8">
+<div class="flex flex-col items-center">
+<div class="relative mb-4">
+<div class="w-28 h-28 rounded-[2.5rem] overflow-hidden border-4 border-white dark:border-slate-800 ios-shadow">
+<img alt="Elena Gilbert" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCji5F1_QArQELogjT3aonVVgieY10JSt9SDXLQVccy1G3sjWGW-vUnCA2OA7XV1MBlmP1v9aaD9peUWGRcOYF2cg1ULSNe7sbJf4UUc0U_AYfy7AgWo50Z1b4UxRiB4AvlVObW5XX9AhOfAPXH9yVm4agCm8a9J2aupPWpTITQY8g1c1l-Qmqf94f96BrRYRcU7ZHpaURBZXfgOyghOZJSbdQVj5-KY7UcKFr31I9Mq-Zj1_QxDLG8-b-iLQZYdnp8RT8Tnx-ae3c"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center border-4 border-white dark:border-slate-800">
+<span class="material-symbols-outlined text-white text-sm">photo_camera</span>
+</div>
+</div>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">Elena Gilbert</h2>
+<p class="text-secondary dark:text-slate-400 text-sm font-medium mb-4">Acne Vulgaris • Active Treatment</p>
+<div class="flex gap-3 w-full">
+<button class="flex-1 bg-white dark:bg-slate-800 py-3 rounded-2xl ios-shadow border border-slate-50 dark:border-slate-700 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-primary">call</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-secondary">Call</span>
+</button>
+<button class="flex-1 bg-white dark:bg-slate-800 py-3 rounded-2xl ios-shadow border border-slate-50 dark:border-slate-700 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-primary">mail</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-secondary">Email</span>
+</button>
+<button class="flex-1 bg-white dark:bg-slate-800 py-3 rounded-2xl ios-shadow border border-slate-50 dark:border-slate-700 flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-primary">chat_bubble</span>
+<span class="text-[10px] font-bold uppercase tracking-wider text-secondary">Message</span>
+</button>
+</div>
+</div>
+</section>
+<div class="flex border-b border-slate-100 dark:border-slate-800 mb-6 overflow-x-auto hide-scrollbar">
+<button class="flex-shrink-0 px-4 py-3 text-sm font-semibold text-secondary border-b-2 border-transparent">Clinical History</button>
+<button class="flex-shrink-0 px-4 py-3 text-sm font-bold text-slate-900 dark:text-white border-b-2 border-primary">Treatment Plan</button>
+<button class="flex-shrink-0 px-4 py-3 text-sm font-semibold text-secondary border-b-2 border-transparent">Progress Photos</button>
+</div>
+<section class="space-y-6">
+<div>
+<h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">medication</span>
+                    Prescribed Routine
+                </h3>
+<div class="space-y-3">
+<div class="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-50 dark:border-slate-700 ios-shadow flex items-start gap-4">
+<div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">water_drop</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-sm">Gentle Cleansing Gel</h4>
+<p class="text-xs text-secondary mt-1 leading-relaxed">Apply a pea-sized amount to damp skin.</p>
+<div class="flex gap-2 mt-2">
+<span class="bg-slate-100 dark:bg-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg">Morning</span>
+<span class="bg-slate-100 dark:bg-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg">Evening</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-50 dark:border-slate-700 ios-shadow flex items-start gap-4">
+<div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">flare</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-sm">Tretinoin Cream 0.05%</h4>
+<p class="text-xs text-secondary mt-1 leading-relaxed">Targeted application on affected areas only.</p>
+<div class="flex gap-2 mt-2">
+<span class="bg-slate-100 dark:bg-slate-700 text-[10px] font-bold px-2 py-1 rounded-lg">Evening</span>
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-1 rounded-lg">3x Week</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+                        Doctor's Notes
+                    </h3>
+<button class="text-primary text-xs font-bold uppercase tracking-wider">Add Note</button>
+</div>
+<div class="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-50 dark:border-slate-700 ios-shadow">
+<p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic mb-4">
+                        "Patient reports slight irritation with Tretinoin. Advised to reduce frequency to twice a week for the next 7 days and use a heavier moisturizer. Skin barrier appears slightly compromised on the cheeks."
+                    </p>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+<span class="text-[10px] font-bold text-secondary uppercase">Last updated: Oct 24, 2023</span>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white dark:border-slate-800 overflow-hidden">
+<img alt="Dr Sarah" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQNnShvQ1gjOi-tdPpjRYzY1KU-2c-uvnJCFKbT3Mu3_Gw1p0taFBSzPlA3oKaweWCARJLNbYbpeIxvyoE7t25vj8gBHqfB37yKWYyR8fTy_PJ5EOIvaJhVbUJiCz9M_qzd0fLkzef7zQEIHb53L2yHtK6IjTKiIcHZXkf22cuXl9Xr4QUzfq9oGDMrU-xNsCUxsXXW0LAGOZScnG9uK-pvePuwcUYh0-GCExy4qFn0CkQ5-G0M3xFJWKmMlw-JW1JZnjopoYA7GM"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">visibility</span>
+                    Recent Comparison
+                </h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="relative rounded-2xl overflow-hidden aspect-[4/5]">
+<img alt="Day 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXCBqQT-6S68Jhv1d9IV6ujjJv4vd27PJziXAB16cyTYVlFVbLYOszLnl0-wGL6z-aFb2eA2dy2PtfKK2vHWYjBDpIguU_34teveBVv4xngxr05rATjH4JoxUarK4zJyQtj-ki2XCGXCMbrwErV15L62gcHCn2RbuaFiDzteHhNHIK97T8n423bk81-z_ye-N1IFWfwj-MpEFiClEbzm93W_-HwcNi0hKiUktusugNnnKAge75SgCvXSVfKXPQ1YtfNekgJJ-fYOs"/>
+<div class="absolute bottom-2 left-2 bg-black/40 backdrop-blur-md text-[10px] text-white px-2 py-1 rounded-lg font-bold">Day 1</div>
+</div>
+<div class="relative rounded-2xl overflow-hidden aspect-[4/5]">
+<img alt="Day 14" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU7gnn0HTrFT7A0ixJZVeW6d2A20f52fJusG6ewNU6cGFqDcAKZGM5GaAFdURNURbL27v8m1tqKBCaO0JSpm9JphxXdXvJlgStvVI9qxjylAQgRGCDsOl0qA933oTxhz0gQ2g8PoIloucwWULD5gQwEgyBNwOENQz0ihu4Ph6rTOHuQqDmFhEzG7fUV0URrm2QGnZPM_dp7qYLQPeCwj1cM3zV9n5AXRyKAAhTNe3rzcnT9912MbTWlnU8_tb6gXv2tTAdMAlQ88g"/>
+<div class="absolute bottom-2 left-2 bg-primary/80 backdrop-blur-md text-[10px] text-white px-2 py-1 rounded-lg font-bold">Day 14</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 px-8 py-4 pb-8 z-50">
+<div class="max-w-md mx-auto flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Dash</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Patients</span>
+</button>
+<div class="-mt-12">
+<button class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/40 transform active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Schedule</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Tools</span>
+</button>
+</div>
+</nav>
+<button class="fixed top-24 right-4 w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center ios-shadow z-50 border border-slate-100 dark:border-slate-700" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-symbols-outlined text-primary text-xl">dark_mode</span>
+</button>
+
+</body></html>

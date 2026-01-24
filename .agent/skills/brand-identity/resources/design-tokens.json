@@ -1,0 +1,54 @@
+{
+    "meta": {
+        "brand_name": "Dermo Care",
+        "description": "Core design tokens for UI implementation focusing on a premium clinical aesthetic."
+    },
+    "colors": {
+        "primary": {
+            "DEFAULT": "#F8C6B9",
+            "hover": "#f4a492",
+            "foreground": "#FFFFFF"
+        },
+        "secondary": {
+            "DEFAULT": "#7A869A",
+            "foreground": "#FFFFFF"
+        },
+        "background": {
+            "light": "#FDFCFB",
+            "dark": "#1A1614",
+            "card": "#FFFFFF"
+        },
+        "foreground": {
+            "DEFAULT": "#1E293B",
+            "muted": "#7A869A",
+            "subtle": "#94A3B8"
+        },
+        "status": {
+            "success": "#22C55E",
+            "error": "#F87171",
+            "warning": "#FBBF24"
+        }
+    },
+    "typography": {
+        "font_family_headings": [
+            "Plus Jakarta Sans",
+            "Inter",
+            "sans-serif"
+        ],
+        "font_family_body": [
+            "Plus Jakarta Sans",
+            "Inter",
+            "sans-serif"
+        ],
+        "font_weight_bold": "700",
+        "font_weight_semibold": "600",
+        "font_weight_normal": "400"
+    },
+    "ui": {
+        "border_radius_default": "1.5rem",
+        "border_radius_lg": "2rem",
+        "border_radius_sm": "0.75rem",
+        "shadow_ios": "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
+        "shadow_primary": "0 8px 20px -4px rgba(248, 198, 185, 0.4)"
+    }
+}

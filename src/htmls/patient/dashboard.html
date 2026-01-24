@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dermo Care - Patient Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#F4A29D", // Soft coral/peach from the image
+                        "background-light": "#FDFCFB",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 30, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen">
+    <div class="max-w-md mx-auto min-h-screen relative pb-24 overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+        <div class="absolute top-1/2 -left-20 w-48 h-48 bg-primary/5 rounded-full blur-2xl -z-10"></div>
+        <header class="px-6 pt-12 pb-6 flex justify-between items-end">
+            <div>
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Welcome back,</p>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Elena Rose</h1>
+            </div>
+            <div class="relative">
+                <div
+                    class="w-12 h-12 rounded-full border-2 border-white dark:border-slate-800 overflow-hidden shadow-sm">
+                    <img alt="Patient profile" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuATdp44t_QMtmW3F_CTgHbk3g9-wDz32Asgf_DFK6YcolCHPDnYzzxm3azdLnYTWe33DRn9Sud2nHySlpOgkbsM1Mls78GoUhoIqdJ6IXMn77dMO_1gO-cBAH8YhaxO3GXW_bqGHxqlPE8_CRphF6UUuzy_5gh-gzdDEiulejSXJbUP4u9wb98nrRVNlgTT_GUlCv_KTJ5b5dv4XZI8DVs-JnNuFXSdLtG0lylyQCz2O6ltl19uwV7P-3kGJvxKvGC3sRu6zmP_rcc" />
+                </div>
+                <div
+                    class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white dark:border-slate-800 rounded-full">
+                </div>
+            </div>
+        </header>
+        <section class="px-6 mb-8">
+            <div class="glass-card rounded-[2rem] p-6 shadow-xl shadow-primary/5">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold">Skin Improvement</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Tracking over 30 days</p>
+                    </div>
+                    <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">+12%</span>
+                </div>
+                <div class="h-32 w-full mt-4 relative">
+                    <svg class="w-full h-full" viewBox="0 0 400 120">
+                        <line stroke="currentColor" stroke-opacity="0.05" x1="0" x2="400" y1="20" y2="20"></line>
+                        <line stroke="currentColor" stroke-opacity="0.05" x1="0" x2="400" y1="60" y2="60"></line>
+                        <line stroke="currentColor" stroke-opacity="0.05" x1="0" x2="400" y1="100" y2="100"></line>
+                        <path d="M0,100 Q50,90 100,70 T200,80 T300,40 T400,20" fill="none" stroke="#F4A29D"
+                            stroke-linecap="round" stroke-width="3"></path>
+                        <path class="dark:stroke-slate-700" d="M0,110 Q50,105 100,95 T200,100 T300,90 T400,85"
+                            fill="none" stroke="#E2E8F0" stroke-dasharray="4" stroke-width="2"></path>
+                    </svg>
+                    <div
+                        class="flex justify-between mt-2 text-[10px] text-slate-400 uppercase tracking-widest font-medium">
+                        <span>Week 1</span>
+                        <span>Week 2</span>
+                        <span>Week 3</span>
+                        <span>Week 4</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="px-6 mb-8">
+            <div class="grid grid-cols-2 gap-4">
+                <button
+                    class="bg-primary text-white p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-lg shadow-primary/20 transition-transform active:scale-95">
+                    <span class="material-symbols-outlined text-3xl mb-2">add_a_photo</span>
+                    <span class="text-sm font-semibold leading-tight">Upload Progress<br />Photo</span>
+                </button>
+                <div class="glass-card p-5 rounded-3xl flex flex-col items-center justify-center text-center shadow-sm">
+                    <span class="material-symbols-outlined text-3xl mb-2 text-primary">calendar_today</span>
+                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Next Visit</span>
+                    <span class="text-[10px] text-slate-400">Oct 24, 10:30 AM</span>
+                </div>
+            </div>
+        </section>
+        <section class="px-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Today's Routine</h3>
+                <span class="text-sm text-primary font-medium">View Plan</span>
+            </div>
+            <div class="space-y-4">
+                <div class="glass-card p-4 rounded-3xl flex items-center space-x-4">
+                    <div
+                        class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-amber-500">
+                        <span class="material-symbols-outlined">light_mode</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold">Morning Care</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Hydrating Cleanser + SPF</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] font-bold text-slate-400">08:00 AM</span>
+                        <div
+                            class="w-6 h-6 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-base">check</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card p-4 rounded-3xl flex items-center space-x-4">
+                    <div
+                        class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center text-indigo-500">
+                        <span class="material-symbols-outlined">dark_mode</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold">Evening Care</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Retinol Serum + Night Cream</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] font-bold text-slate-400">09:00 PM</span>
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-200 dark:border-slate-700"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="mt-8">
+            <div class="px-6 flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Prescribed</h3>
+            </div>
+            <div class="flex space-x-4 overflow-x-auto px-6 pb-4 no-scrollbar">
+                <div class="min-w-[140px] glass-card p-3 rounded-3xl">
+                    <div class="bg-slate-100 dark:bg-slate-800 h-24 rounded-2xl mb-2 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-slate-400">medication</span>
+                    </div>
+                    <p class="text-xs font-bold truncate">Avene Cleanser</p>
+                    <p class="text-[10px] text-slate-500">2x Daily</p>
+                </div>
+                <div class="min-w-[140px] glass-card p-3 rounded-3xl">
+                    <div class="bg-slate-100 dark:bg-slate-800 h-24 rounded-2xl mb-2 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-slate-400">sanitizer</span>
+                    </div>
+                    <p class="text-xs font-bold truncate">Tretinoin 0.05%</p>
+                    <p class="text-[10px] text-slate-500">Nightly</p>
+                </div>
+                <div class="min-w-[140px] glass-card p-3 rounded-3xl">
+                    <div class="bg-slate-100 dark:bg-slate-800 h-24 rounded-2xl mb-2 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-slate-400">science</span>
+                    </div>
+                    <p class="text-xs font-bold truncate">Hyaluronic Acid</p>
+                    <p class="text-[10px] text-slate-500">Morning</p>
+                </div>
+            </div>
+        </section>
+        <nav
+            class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-[400px] h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-[2rem] shadow-2xl flex items-center justify-around px-6 border border-white/20">
+            <button class="text-primary flex flex-col items-center">
+                <span class="material-symbols-outlined font-bold">home</span>
+                <span class="text-[10px] font-bold mt-0.5 uppercase tracking-tighter">Home</span>
+            </button>
+            <button class="text-slate-400 dark:text-slate-500 flex flex-col items-center">
+                <span class="material-symbols-outlined">timeline</span>
+                <span class="text-[10px] font-bold mt-0.5 uppercase tracking-tighter">Stats</span>
+            </button>
+            <button class="text-slate-400 dark:text-slate-500 flex flex-col items-center">
+                <span class="material-symbols-outlined">chat_bubble</span>
+                <span class="text-[10px] font-bold mt-0.5 uppercase tracking-tighter">Chat</span>
+            </button>
+            <button class="text-slate-400 dark:text-slate-500 flex flex-col items-center">
+                <span class="material-symbols-outlined">person</span>
+                <span class="text-[10px] font-bold mt-0.5 uppercase tracking-tighter">Profile</span>
+            </button>
+        </nav>
+    </div>
+    <style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+
+</body>
+
+</html>

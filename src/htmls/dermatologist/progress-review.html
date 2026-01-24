@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dermo Care - Photo Review Tool</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#F8C6B9",
+                        "background-light": "#FDFCFB",
+                        "background-dark": "#1A1614",
+                        secondary: "#7A869A",
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .glass-panel {
+            @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800;
+        }
+        .drawing-canvas {
+            background-image: radial-gradient(circle, rgba(248, 198, 185, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen">
+    <div
+        class="h-12 w-full flex items-center justify-between px-8 pt-4 fixed top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm z-[60]">
+        <span class="text-xs font-bold">9:41</span>
+        <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">signal_cellular_alt</span>
+            <span class="material-symbols-outlined text-[16px]">wifi</span>
+            <span class="material-symbols-outlined text-[16px] rotate-90">battery_full</span>
+        </div>
+    </div>
+    <main class="max-w-md mx-auto px-6 pt-16 pb-32">
+        <header class="mt-4 mb-6 flex items-center gap-4">
+            <button
+                class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 ios-shadow flex items-center justify-center border border-slate-100 dark:border-slate-700">
+                <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">arrow_back</span>
+            </button>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">Review Patient
+                    Progress</h1>
+                <p class="text-xs text-secondary dark:text-slate-400 font-medium uppercase tracking-wider">Elena Gilbert
+                    • Day 14</p>
+            </div>
+        </header>
+        <section class="space-y-4 mb-8">
+            <div
+                class="bg-white dark:bg-slate-800 p-3 rounded-[2.5rem] ios-shadow border border-slate-50 dark:border-slate-700">
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="relative group">
+                        <img alt="Previous photo"
+                            class="w-full aspect-[3/4] object-cover rounded-[1.8rem] border border-slate-100 dark:border-slate-700"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXCBqQT-6S68Jhv1d9IV6ujjJv4vd27PJziXAB16cyTYVlFVbLYOszLnl0-wGL6z-aFb2eA2dy2PtfKK2vHWYjBDpIguU_34teveBVv4xngxr05rATjH4JoxUarK4zJyQtj-ki2XCGXCMbrwErV15L62gcHCn2RbuaFiDzteHhNHIK97T8n423bk81-z_ye-N1IFWfwj-MpEFiClEbzm93W_-HwcNi0hKiUktusugNnnKAge75SgCvXSVfKXPQ1YtfNekgJJ-fYOs" />
+                        <div class="absolute bottom-3 left-3 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full">
+                            <span class="text-[10px] text-white font-bold uppercase tracking-tight leading-none">Day
+                                0</span>
+                        </div>
+                    </div>
+                    <div class="relative group">
+                        <img alt="Current photo"
+                            class="w-full aspect-[3/4] object-cover rounded-[1.8rem] border-2 border-primary"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCji5F1_QArQELogjT3aonVVgieY10JSt9SDXLQVccy1G3sjWGW-vUnCA2OA7XV1MBlmP1v9aaD9peUWGRcOYF2cg1ULSNe7sbJf4UUc0U_AYfy7AgWo50Z1b4UxRiB4AvlVObW5XX9AhOfAPXH9yVm4agCm8a9J2aupPWpTITQY8g1c1l-Qmqf94f96BrRYRcU7ZHpaURBZXfgOyghOZJSbdQVj5-KY7UcKFr31I9Mq-Zj1_QxDLG8-b-iLQZYdnp8RT8Tnx-ae3c" />
+                        <div
+                            class="absolute inset-0 rounded-[1.8rem] pointer-events-none border-2 border-primary/50 overflow-hidden">
+                            <svg class="w-full h-full stroke-primary opacity-80" viewBox="0 0 100 100">
+                                <path d="M30 40 Q 50 20, 70 45" fill="none" stroke-linecap="round" stroke-width="2">
+                                </path>
+                                <circle cx="70" cy="45" fill="none" r="5" stroke-width="2"></circle>
+                            </svg>
+                        </div>
+                        <div class="absolute bottom-3 left-3 bg-primary backdrop-blur-md px-3 py-1 rounded-full">
+                            <span class="text-[10px] text-white font-bold uppercase tracking-tight leading-none">Day
+                                14</span>
+                        </div>
+                        <div class="absolute top-3 right-3 bg-white/90 p-1.5 rounded-full shadow-sm">
+                            <span class="material-symbols-outlined text-[18px] text-primary">edit</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between px-2 pb-1">
+                    <div class="flex gap-2">
+                        <button class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">gesture</span>
+                        </button>
+                        <button
+                            class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">text_fields</span>
+                        </button>
+                        <button
+                            class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">history</span>
+                        </button>
+                    </div>
+                    <button
+                        class="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-500 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest">
+                        <span class="material-symbols-outlined text-[18px]">mic</span>
+                        Rec Voice
+                    </button>
+                </div>
+            </div>
+            <div
+                class="bg-white dark:bg-slate-800 p-5 rounded-3xl ios-shadow border border-slate-50 dark:border-slate-700">
+                <label class="block text-[11px] font-bold text-secondary uppercase tracking-widest mb-2">Doctor's
+                    Observation</label>
+                <textarea
+                    class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-2xl p-4 text-sm focus:ring-1 focus:ring-primary h-24 resize-none"
+                    placeholder="Add specific notes about the inflammatory lesions or progress..."></textarea>
+            </div>
+        </section>
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h2 class="text-lg font-bold">Pending Reviews</h2>
+                <span class="bg-primary/20 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase">3
+                    Remaining</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 overflow-x-auto hide-scrollbar">
+                <div
+                    class="bg-white dark:bg-slate-800 p-3 rounded-3xl ios-shadow border border-slate-50 dark:border-slate-700 opacity-60">
+                    <div class="relative rounded-2xl overflow-hidden mb-2 aspect-square">
+                        <img alt="Stefan" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU7gnn0HTrFT7A0ixJZVeW6d2A20f52fJusG6ewNU6cGFqDcAKZGM5GaAFdURNURbL27v8m1tqKBCaO0JSpm9JphxXdXvJlgStvVI9qxjylAQgRGCDsOl0qA933oTxhz0gQ2g8PoIloucwWULD5gQwEgyBNwOENQz0ihu4Ph6rTOHuQqDmFhEzG7fUV0URrm2QGnZPM_dp7qYLQPeCwj1cM3zV9n5AXRyKAAhTNe3rzcnT9912MbTWlnU8_tb6gXv2tTAdMAlQ88g" />
+                    </div>
+                    <h3 class="font-bold text-xs truncate">Stefan Salvatore</h3>
+                    <p class="text-[10px] text-secondary">Eczema • Day 3</p>
+                </div>
+                <div
+                    class="bg-white dark:bg-slate-800 p-3 rounded-3xl ios-shadow border border-slate-50 dark:border-slate-700 opacity-60">
+                    <div class="relative rounded-2xl overflow-hidden mb-2 aspect-square">
+                        <img alt="Caroline" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaD-CbnS7BLePYAub0PFepRwyOKiM3JUo58-1mCuRRifJB_TelGKceiI-kJBSX2vHsOyB39mbyg9UlGOY2mCPIQSueSMhFttNlqEbtWT6FnpTdWGrfOvpPgvHLql6RllIMJARvbiAnCU4MYMB1KCcRHtOMUOraUgMB5JycXbfZD50E5BcakmC6qEPeuNtTdwDzQFbc0xRvLB0KyjSdWlWWhv1coSkbZNheYsVQYa4SlFxkiesguPuqB003aremN5yBjeTy3FaqXi8" />
+                    </div>
+                    <h3 class="font-bold text-xs truncate">Caroline Forbes</h3>
+                    <p class="text-[10px] text-secondary">Laser • Day 7</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <nav class="fixed bottom-0 left-0 right-0 glass-panel px-6 py-5 pb-8 z-50">
+        <div class="max-w-md mx-auto flex gap-3">
+            <button
+                class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl text-sm active:scale-95 transition-transform uppercase tracking-wider">
+                Skip
+            </button>
+            <button
+                class="flex-[2] py-4 bg-primary text-white font-bold rounded-2xl text-sm ios-shadow active:scale-95 transition-transform uppercase tracking-wider flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">done_all</span>
+                Submit Review
+            </button>
+        </div>
+    </nav>
+    <button
+        class="fixed top-24 right-4 w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center ios-shadow z-50 border border-slate-100 dark:border-slate-700"
+        onclick="document.documentElement.classList.toggle('dark')">
+        <span class="material-symbols-outlined text-primary text-xl">dark_mode</span>
+    </button>
+
+</body>
+
+</html>

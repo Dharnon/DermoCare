@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Dermo Care - Patient Management</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;family=Material+Icons+Outlined&amp;display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#F8C6B9", // Soft peach from the image
+                        "background-light": "#FDFCFB",
+                        "background-dark": "#1A1614",
+                        secondary: "#7A869A",
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ios-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen">
+    <div class="h-12 w-full flex items-center justify-between px-8 pt-4">
+        <span class="text-xs font-bold">9:41</span>
+        <div class="flex items-center gap-1.5">
+            <span class="material-icons-outlined text-sm">signal_cellular_alt</span>
+            <span class="material-icons-outlined text-sm">wifi</span>
+            <span class="material-icons-outlined text-sm rotate-90">battery_full</span>
+        </div>
+    </div>
+    <main class="max-w-md mx-auto px-6 pb-24">
+        <header class="mt-6 mb-8 flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dermo Care</h1>
+                <p class="text-secondary dark:text-slate-400 font-medium">Welcome, Dr. Sarah</p>
+            </div>
+            <div class="relative">
+                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/30">
+                    <img alt="Doctor profile" class="w-full h-full object-cover"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQNnShvQ1gjOi-tdPpjRYzY1KU-2c-uvnJCFKbT3Mu3_Gw1p0taFBSzPlA3oKaweWCARJLNbYbpeIxvyoE7t25vj8gBHqfB37yKWYyR8fTy_PJ5EOIvaJhVbUJiCz9M_qzd0fLkzef7zQEIHb53L2yHtK6IjTKiIcHZXkf22cuXl9Xr4QUzfq9oGDMrU-xNsCUxsXXW0LAGOZScnG9uK-pvePuwcUYh0-GCExy4qFn0CkQ5-G0M3xFJWKmMlw-JW1JZnjopoYA7GM" />
+                </div>
+                <div
+                    class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-background-dark rounded-full">
+                </div>
+            </div>
+        </header>
+        <div class="relative mb-8">
+            <span class="material-icons-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+            <input
+                class="w-full bg-white dark:bg-slate-800/50 border-none rounded-2xl py-4 pl-12 pr-4 ios-shadow focus:ring-2 focus:ring-primary/50 transition-all text-sm"
+                placeholder="Search patients or conditions..." type="text" />
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-primary/10 dark:bg-primary/5 p-5 rounded-3xl border border-primary/20">
+                <div class="bg-primary p-2 w-10 h-10 rounded-xl flex items-center justify-center mb-3">
+                    <span class="material-icons-outlined text-white">groups</span>
+                </div>
+                <span class="text-3xl font-bold block mb-1">24</span>
+                <span class="text-xs font-semibold text-secondary uppercase tracking-wider">Total Patients</span>
+            </div>
+            <div
+                class="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-200 dark:border-slate-700">
+                <div
+                    class="bg-white dark:bg-slate-700 p-2 w-10 h-10 rounded-xl flex items-center justify-center mb-3 ios-shadow">
+                    <span class="material-icons-outlined text-slate-600 dark:text-slate-300">event_available</span>
+                </div>
+                <span class="text-3xl font-bold block mb-1">08</span>
+                <span class="text-xs font-semibold text-secondary uppercase tracking-wider">Consultations</span>
+            </div>
+        </div>
+        <section class="mb-8">
+            <div class="flex justify-between items-end mb-4 px-1">
+                <h2 class="text-xl font-bold">Pending Reviews</h2>
+                <button class="text-primary text-sm font-semibold">View All</button>
+            </div>
+            <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                <div
+                    class="flex-shrink-0 w-64 bg-white dark:bg-slate-800 p-4 rounded-3xl ios-shadow border border-slate-50 dark:border-slate-700">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img alt="Patient photo" class="w-10 h-10 rounded-xl object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCji5F1_QArQELogjT3aonVVgieY10JSt9SDXLQVccy1G3sjWGW-vUnCA2OA7XV1MBlmP1v9aaD9peUWGRcOYF2cg1ULSNe7sbJf4UUc0U_AYfy7AgWo50Z1b4UxRiB4AvlVObW5XX9AhOfAPXH9yVm4agCm8a9J2aupPWpTITQY8g1c1l-Qmqf94f96BrRYRcU7ZHpaURBZXfgOyghOZJSbdQVj5-KY7UcKFr31I9Mq-Zj1_QxDLG8-b-iLQZYdnp8RT8Tnx-ae3c" />
+                        <div>
+                            <h3 class="font-bold text-sm">Elena Gilbert</h3>
+                            <p class="text-xs text-secondary">Acne Treatment • Day 14</p>
+                        </div>
+                    </div>
+                    <div class="relative rounded-2xl overflow-hidden mb-3 aspect-video bg-slate-100 dark:bg-slate-700">
+                        <img alt="Progress photo" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXCBqQT-6S68Jhv1d9IV6ujjJv4vd27PJziXAB16cyTYVlFVbLYOszLnl0-wGL6z-aFb2eA2dy2PtfKK2vHWYjBDpIguU_34teveBVv4xngxr05rATjH4JoxUarK4zJyQtj-ki2XCGXCMbrwErV15L62gcHCn2RbuaFiDzteHhNHIK97T8n423bk81-z_ye-N1IFWfwj-MpEFiClEbzm93W_-HwcNi0hKiUktusugNnnKAge75SgCvXSVfKXPQ1YtfNekgJJ-fYOs" />
+                        <div
+                            class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-[10px] text-white px-2 py-1 rounded-full uppercase font-bold tracking-tighter">
+                            New Update</div>
+                    </div>
+                    <button
+                        class="w-full py-2.5 bg-primary text-white font-bold rounded-xl text-xs hover:opacity-90 transition-opacity">Review
+                        Photo</button>
+                </div>
+                <div
+                    class="flex-shrink-0 w-64 bg-white dark:bg-slate-800 p-4 rounded-3xl ios-shadow border border-slate-50 dark:border-slate-700">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img alt="Patient photo" class="w-10 h-10 rounded-xl object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0r-Aoz5_kPcTwk6xXUmtllj8x74kC0L-rY3cNgnYnhLLokUYrTcxAkGt1bDcLbmsyl9Iac6kBhpV0g-DArVJqT02_AyFI4v6Tq12T45cGE8zFWP8xkdkSDv1pZ2_2jFlmodCxLOvI69ONR4ZGHMlHDuDp36XY0DJNK_qnvcTcKu-PuNpz-fCExOakEY6WKSwJncKBhT_5sMG75QKEuCQXSgZnvLTO0wp357fSOG7gHwkLG2rUNW6r76rfoRYbrw4JDJhuOEiWvwo" />
+                        <div>
+                            <h3 class="font-bold text-sm">Stefan Salvatore</h3>
+                            <p class="text-xs text-secondary">Eczema Care • Day 3</p>
+                        </div>
+                    </div>
+                    <div class="relative rounded-2xl overflow-hidden mb-3 aspect-video bg-slate-100 dark:bg-slate-700">
+                        <img alt="Progress photo" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU7gnn0HTrFT7A0ixJZVeW6d2A20f52fJusG6ewNU6cGFqDcAKZGM5GaAFdURNURbL27v8m1tqKBCaO0JSpm9JphxXdXvJlgStvVI9qxjylAQgRGCDsOl0qA933oTxhz0gQ2g8PoIloucwWULD5gQwEgyBNwOENQz0ihu4Ph6rTOHuQqDmFhEzG7fUV0URrm2QGnZPM_dp7qYLQPeCwj1cM3zV9n5AXRyKAAhTNe3rzcnT9912MbTWlnU8_tb6gXv2tTAdMAlQ88g" />
+                        <div
+                            class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-[10px] text-white px-2 py-1 rounded-full uppercase font-bold tracking-tighter">
+                            Follow Up</div>
+                    </div>
+                    <button
+                        class="w-full py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-xl text-xs hover:opacity-90 transition-opacity">Review
+                        Photo</button>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="flex justify-between items-end mb-4 px-1">
+                <h2 class="text-xl font-bold">Recent Consultations</h2>
+                <button class="text-primary text-sm font-semibold">History</button>
+            </div>
+            <div class="space-y-3">
+                <div
+                    class="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center justify-between group cursor-pointer hover:border-primary/40 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center overflow-hidden">
+                            <img alt="Bonnie" class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz6A9rPQoDNd9JhWLgflE8l43MJ-_nxsmPBp6Memd_8shvvvargAQHGH1HQbjhg0tC3-gZAV1oXZjtBrTZjIChJpUyh5yu5byHHKIpPcyxA_p3JzhYZ76yD47TiMkLny1jh5y0niBtL9oGb-6tyr86OLVkHWKFtsJ0W7HClfTM2CkIraadcF0eUnEXVgEh1oigA3WGMKflIOtC28K78NnbqXf8nynehh7fcGDKA2jwnk2MIrpMWbbmw02AKWWauqcprf4Mz0xdX2U" />
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Bonnie Bennett</h4>
+                            <p class="text-xs text-secondary dark:text-slate-400">Post-Laser Follow-up • Completed</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[10px] font-bold text-secondary uppercase mb-1">10:30 AM</span>
+                        <span
+                            class="material-icons-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
+                    </div>
+                </div>
+                <div
+                    class="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center justify-between group cursor-pointer hover:border-primary/40 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center overflow-hidden">
+                            <img alt="Tyler" class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq5ECXjVZ8nCfSRNVoLyI8izdEPJgmwIgGfUljWhTz_mh3g7Yypjw1r_As_sO81xGgHXN3SzplBGCaBGE9tVzx3JFfeMWuM_qrKb6xMueUvUk8m--ZB0F0G4Zje6shQeHCoZsFxhx5sl-szSBNE5nKhjukZ5IYW5mdUfGQQI-ss0KxJEidmbsXJfn2sPIPo6KJdudfII7dN33asEF4uivb4RRbJP9An8lFLFYfM6r1JrV0sHb75DLBUZDgsc1CeGMaSqlgo8gWmOw" />
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Tyler Lockwood</h4>
+                            <p class="text-xs text-secondary dark:text-slate-400">Psoriasis Screening • Ongoing</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[10px] font-bold text-primary uppercase mb-1">Now</span>
+                        <span
+                            class="material-icons-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
+                    </div>
+                </div>
+                <div
+                    class="bg-white dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex items-center justify-between group cursor-pointer hover:border-primary/40 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center overflow-hidden">
+                            <img alt="Caroline" class="w-full h-full object-cover"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaD-CbnS7BLePYAub0PFepRwyOKiM3JUo58-1mCuRRifJB_TelGKceiI-kJBSX2vHsOyB39mbyg9UlGOY2mCPIQSueSMhFttNlqEbtWT6FnpTdWGrfOvpPgvHLql6RllIMJARvbiAnCU4MYMB1KCcRHtOMUOraUgMB5JycXbfZD50E5BcakmC6qEPeuNtTdwDzQFbc0xRvLB0KyjSdWlWWhv1coSkbZNheYsVQYa4SlFxkiesguPuqB003aremN5yBjeTy3FaqXi8" />
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Caroline Forbes</h4>
+                            <p class="text-xs text-secondary dark:text-slate-400">Skin Tag Removal • Scheduled</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[10px] font-bold text-secondary uppercase mb-1">12:15 PM</span>
+                        <span
+                            class="material-icons-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <nav
+        class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 px-8 py-4 pb-8 z-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <button class="flex flex-col items-center gap-1 text-primary">
+                <span class="material-icons-outlined">dashboard</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Dash</span>
+            </button>
+            <button
+                class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">
+                <span class="material-icons-outlined">person_outline</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Patients</span>
+            </button>
+            <div class="-mt-12">
+                <button
+                    class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/40 transform active:scale-95 transition-transform">
+                    <span class="material-icons-outlined text-3xl">add</span>
+                </button>
+            </div>
+            <button
+                class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">
+                <span class="material-icons-outlined">calendar_today</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Schedule</span>
+            </button>
+            <button
+                class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors">
+                <span class="material-icons-outlined">settings</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Tools</span>
+            </button>
+        </div>
+    </nav>
+    <button
+        class="fixed top-20 right-4 w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center ios-shadow z-50 border border-slate-100 dark:border-slate-700"
+        onclick="document.documentElement.classList.toggle('dark')">
+        <span class="material-icons-outlined text-primary text-xl">dark_mode</span>
+    </button>
+
+</body>
+
+</html>.
