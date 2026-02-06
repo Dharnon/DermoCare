@@ -34,11 +34,13 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
+    // Debug logging
     const { pathname } = request.nextUrl;
+    console.log(`Middleware: ${request.method} ${pathname}`);
 
     // Public routes that don't require authentication
-    // Removed '/' to force login on landing
-    const publicRoutes = ['/auth', '/auth/callback', '/auth/confirm'];
+    // Restored '/' for debugging
+    const publicRoutes = ['/', '/auth', '/auth/callback', '/auth/confirm'];
     const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
 
     // Handle auth callback
