@@ -140,6 +140,22 @@ export default function AuthPage() {
                         </button>
                     </div>
 
+                    {/* Env Var Diagnosis */}
+                    {/* @ts-ignore - accessing internal property for debug */}
+                    {supabase['supabaseUrl'] && supabase['supabaseUrl'].includes('placeholder') && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs">
+                            <p className="font-bold mb-1">⚠️ Error de Configuración Vercel</p>
+                            <p>La app no detecta las variables de entorno.</p>
+                            <p className="mt-1 opacity-75">URL actual: {(supabase as any)['supabaseUrl']}</p>
+                            <p className="mt-1 font-bold">SOLUCIÓN:</p>
+                            <ol className="list-decimal ml-4 mt-1 space-y-1">
+                                <li>Ve a Vercel {'>'} Settings {'>'} Environment Variables</li>
+                                <li>Asegúrate de que NEXT_PUBLIC_SUPABASE_URL está bien puesta</li>
+                                <li>Ve a Deployments y haz <strong>Redeploy</strong> (no build cache)</li>
+                            </ol>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {!isLogin && (
                             <div className="space-y-4">
