@@ -56,17 +56,28 @@ export const patientService = {
     },
 
     async getAdherenceLogs(patientId: string, startDate: string, endDate: string) {
+        // First, get all routine IDs for this patient
+        const { data: routines } = await supabase
+            .from('routines')
+            .select('id')
+            .eq('patient_id', patientId);
+
+        if (!routines || routines.length === 0) {
+            return [];
+        }
+
+        const routineIds = routines.map((r: { id: string }) => r.id);
+
+        // Then, get adherence logs for those routines
         const { data, error } = await supabase
             .from('adherence_logs')
             .select('*')
-            .in('routine_id',
-                supabase.from('routines').select('id').eq('patient_id', patientId)
-            )
+            .in('routine_id', routineIds)
             .gte('date', startDate)
             .lte('date', endDate);
 
         if (error) throw error;
-        return data;
+        return data || [];
     }
 };
 
