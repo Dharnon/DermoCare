@@ -18,7 +18,8 @@ export function DoctorChatSheet({ patient, isOpen, onClose }: DoctorChatSheetPro
         currentPro,
         chatMessages,
         sendMessage,
-        markMessagesAsRead
+        markMessagesAsRead,
+        fetchChatMessages
     } = useDermoCareStore();
 
     const conversationMessages = useMemo(() => {
@@ -31,12 +32,26 @@ export function DoctorChatSheet({ patient, isOpen, onClose }: DoctorChatSheetPro
             .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     }, [chatMessages, currentPro, patient]);
 
-    // Mark as read when viewing
+    // Fetch messages from Supabase when sheet opens
+    useEffect(() => {
+        if (isOpen && currentPro && patient) {
+            fetchChatMessages(currentPro.id, patient.id);
+        }
+    }, [isOpen, currentPro, patient, fetchChatMessages]);
+
+    // Mark as read when viewing - only if there are unread messages
     useEffect(() => {
         if (isOpen && currentPro && patient && conversationMessages.length > 0) {
-            markMessagesAsRead(currentPro.id, patient.id);
+            // Check if there are actually unread messages from the patient
+            const hasUnread = conversationMessages.some(
+                msg => msg.senderId === patient.id && !msg.isRead
+            );
+            if (hasUnread) {
+                markMessagesAsRead(currentPro.id, patient.id);
+            }
         }
-    }, [isOpen, conversationMessages, currentPro, patient, markMessagesAsRead]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, currentPro?.id, patient?.id, conversationMessages.length]);
 
     const handleSendMessage = (text: string) => {
         if (currentPro && patient) {
@@ -88,6 +103,7 @@ export function DoctorChatSheet({ patient, isOpen, onClose }: DoctorChatSheetPro
                     otherUser={{ name: patient.name, avatarUrl: patient.avatarUrl }}
                     onSendMessage={handleSendMessage}
                     className="h-full bg-transparent"
+                    showHeader={false}
                 />
             </div>
         </Drawer>

@@ -10,7 +10,10 @@ export default function PatientChatPage() {
         currentPro,
         chatMessages,
         sendMessage,
-        markMessagesAsRead
+        markMessagesAsRead,
+        fetchChatMessages,
+        subscribeToChat,
+        unsubscribeFromChat
     } = useDermoCareStore();
 
     // Assuming currentUser is the patient and currentPro is their doctor
@@ -27,12 +30,37 @@ export default function PatientChatPage() {
             .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
     }, [chatMessages, currentUser, currentPro]);
 
-    // Mark as read when viewing
+    // Fetch messages from Supabase on mount
+    useEffect(() => {
+        if (currentUser && currentPro) {
+            fetchChatMessages(currentUser.id, currentPro.id);
+        }
+    }, [currentUser, currentPro, fetchChatMessages]);
+
+    // Mark as read when viewing - only if there are unread messages
     useEffect(() => {
         if (currentUser && currentPro && conversationMessages.length > 0) {
-            markMessagesAsRead(currentUser.id, currentPro.id);
+            // Check if there are actually unread messages from the other user
+            const hasUnread = conversationMessages.some(
+                msg => msg.senderId === currentPro.id && !msg.isRead
+            );
+            if (hasUnread) {
+                markMessagesAsRead(currentUser.id, currentPro.id);
+            }
         }
-    }, [conversationMessages, currentUser, currentPro, markMessagesAsRead]);
+        // Only depend on message count and unread status, not the messages array itself
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser?.id, currentPro?.id, conversationMessages.length]);
+
+    // Subscribe to realtime messages
+    useEffect(() => {
+        if (currentUser) {
+            subscribeToChat(currentUser.id);
+        }
+        return () => {
+            unsubscribeFromChat();
+        };
+    }, [currentUser, subscribeToChat, unsubscribeFromChat]);
 
     const handleSendMessage = (text: string) => {
         if (currentUser && currentPro) {
@@ -49,7 +77,9 @@ export default function PatientChatPage() {
                 currentUser={currentUser}
                 otherUser={{
                     name: currentPro.name,
-                    avatarUrl: currentPro.avatarUrl
+                    avatarUrl: currentPro.avatarUrl,
+                    specialization: currentPro.specialization,
+                    bio: currentPro.bio
                 }}
                 onSendMessage={handleSendMessage}
             />

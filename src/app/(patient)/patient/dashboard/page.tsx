@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useDermoCareStore } from '@/lib/store';
 import { calculateDailyAdherence, getTodayString } from '@/lib/adherence';
 import { CircularProgress } from '@/components/ui/CircularProgress';
 import { RequestAppointmentSheet } from '@/features/patient/components/RequestAppointmentSheet';
+import { NotificationSheet } from '@/features/patient/components/NotificationSheet';
 import { cn } from '@/lib/utils';
+import type { User } from '@/lib/types';
 
 const visitTypeLabels: Record<string, string> = {
     'first-visit': 'Primera Visita',
@@ -21,6 +24,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 
 export default function PatientDashboard() {
     const [hasMounted, setHasMounted] = useState(false);
+    const { profile } = useAuth();
 
     // Hydration fix
     useEffect(() => {
@@ -33,9 +37,27 @@ export default function PatientDashboard() {
         adherenceLogs,
         currentPro,
         getNextPatientAppointment,
+        fetchPatientData,
+        setSessionUser
     } = useDermoCareStore();
 
+    // Sync Auth Data & Fetch Real Data
+    useEffect(() => {
+        if (profile) {
+            const storeUser: User = {
+                id: profile.id,
+                name: profile.name || 'Usuario',
+                role: (profile.role as 'patient' | 'pro') || 'patient',
+                avatarUrl: profile.avatar_url,
+                contactInfo: { email: profile.email || '' }
+            };
+            setSessionUser(storeUser);
+            fetchPatientData(profile.id);
+        }
+    }, [profile, setSessionUser, fetchPatientData]);
+
     const [showAppointmentSheet, setShowAppointmentSheet] = useState(false);
+    const [showNotificationSheet, setShowNotificationSheet] = useState(false);
     const [appointmentToast, setAppointmentToast] = useState(false);
 
     const amRoutine = hasMounted ? getPatientRoutine('am') : undefined;
@@ -115,19 +137,27 @@ export default function PatientDashboard() {
                         {currentPatient?.name?.split(' ')[0] || 'Paciente'}
                     </h1>
                 </div>
-                <div className="relative">
-                    <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden shadow-sm bg-primary/20 flex items-center justify-center">
-                        {currentPatient?.avatarUrl ? (
-                            <img
-                                alt="Perfil"
-                                className="w-full h-full object-cover"
-                                src={currentPatient.avatarUrl}
-                            />
-                        ) : (
-                            <span className="material-symbols-outlined text-primary">person</span>
-                        )}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setShowNotificationSheet(true)}
+                        className="w-12 h-12 rounded-full bg-white shadow-sm border border-neutral-100 flex items-center justify-center active:scale-95 transition-all text-neutral-400"
+                    >
+                        <span className="material-symbols-outlined">notifications</span>
+                    </button>
+                    <div className="relative">
+                        <div className="w-12 h-12 rounded-full border-2 border-white overflow-hidden shadow-sm bg-primary/20 flex items-center justify-center">
+                            {currentPatient?.avatarUrl ? (
+                                <img
+                                    alt="Perfil"
+                                    className="w-full h-full object-cover"
+                                    src={currentPatient.avatarUrl}
+                                />
+                            ) : (
+                                <span className="material-symbols-outlined text-primary">person</span>
+                            )}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full" />
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full" />
                 </div>
             </header>
 
@@ -318,6 +348,16 @@ export default function PatientDashboard() {
                     </button>
                 </div>
             </section>
+            <RequestAppointmentSheet
+                isOpen={showAppointmentSheet}
+                onClose={() => setShowAppointmentSheet(false)}
+                onAppointmentCreated={handleAppointmentCreated}
+            />
+
+            <NotificationSheet
+                isOpen={showNotificationSheet}
+                onClose={() => setShowNotificationSheet(false)}
+            />
         </div>
     );
 }

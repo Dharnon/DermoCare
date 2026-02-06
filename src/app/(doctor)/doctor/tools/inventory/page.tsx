@@ -8,15 +8,14 @@ import { cn } from '@/lib/utils';
 import { ProductSheet } from '@/features/doctor/components/ProductSheet';
 import type { Product } from '@/lib/types';
 
-const CATEGORIES = [
-    { value: 'all', label: 'Todos' },
-    { value: 'cleanser', label: 'Limpiadores' },
-    { value: 'serum', label: 'Sérums' },
-    { value: 'moisturizer', label: 'Hidratantes' },
-    { value: 'sunscreen', label: 'Solares' },
-    { value: 'treatment', label: 'Tratamientos' },
-    { value: 'other', label: 'Otros' },
-];
+const DEFAULT_CATEGORIES: Record<string, string> = {
+    'cleanser': 'Limpiadores',
+    'serum': 'Sérums',
+    'moisturizer': 'Hidratantes',
+    'sunscreen': 'Solares',
+    'treatment': 'Tratamientos',
+    'other': 'Otros',
+};
 
 export default function InventoryPage() {
     const { products } = useDermoCareStore();
@@ -27,6 +26,42 @@ export default function InventoryPage() {
     // Sheet State
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    // Dynamic Categories
+    const categories = useMemo(() => {
+        const uniqueCategories = new Set(products.map(p => p.category));
+
+        // Add defaults if they are missing (to ensure structure) but actually we want all defaults + extra
+        Object.keys(DEFAULT_CATEGORIES).forEach(k => uniqueCategories.add(k));
+
+        const catList = [{ value: 'all', label: 'Todos' }];
+
+        // Convert to array and sort (defaults first determined by hardcoded list order if likely, or just alpha)
+        // Here we just iterate our known list for order, then append others
+        const sortedKeys = Array.from(uniqueCategories);
+
+        // Prioritize default order
+        const defaultKeys = Object.keys(DEFAULT_CATEGORIES);
+
+        // Sort: defaults in order, then others alphabetically
+        sortedKeys.sort((a, b) => {
+            const idxA = defaultKeys.indexOf(a);
+            const idxB = defaultKeys.indexOf(b);
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            if (idxA !== -1) return -1;
+            if (idxB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+
+        sortedKeys.forEach(key => {
+            catList.push({
+                value: key,
+                label: DEFAULT_CATEGORIES[key] || (key.charAt(0).toUpperCase() + key.slice(1))
+            });
+        });
+
+        return catList;
+    }, [products]);
 
     // Set global FAB action on mount
     useEffect(() => {
@@ -41,7 +76,8 @@ export default function InventoryPage() {
     const filteredProducts = useMemo(() => {
         return products.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-                p.description.toLowerCase().includes(search.toLowerCase());
+                p.description.toLowerCase().includes(search.toLowerCase()) ||
+                (p.brand?.toLowerCase().includes(search.toLowerCase()) || false);
             const matchesCategory = filterCategory === 'all' || p.category === filterCategory;
             return matchesSearch && matchesCategory;
         });
@@ -72,14 +108,14 @@ export default function InventoryPage() {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Buscar productos..."
+                        placeholder="Buscar por nombre, marca..."
                         className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                     />
                 </div>
 
                 {/* Filters */}
                 <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                         <button
                             key={cat.value}
                             onClick={() => setFilterCategory(cat.value)}
@@ -113,8 +149,21 @@ export default function InventoryPage() {
                         </div>
 
                         <div className="flex-1 min-w-0">
+                            {product.brand && (
+                                <p className="text-[10px] font-bold text-secondary uppercase tracking-wider mb-0.5">{product.brand}</p>
+                            )}
                             <h3 className="font-bold text-neutral-900 truncate">{product.name}</h3>
-                            <p className="text-xs text-secondary truncate">{product.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={cn(
+                                    "text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase",
+                                    DEFAULT_CATEGORIES[product.category] ? "bg-neutral-100 text-neutral-500" : "bg-primary/10 text-primary"
+                                )}>
+                                    {DEFAULT_CATEGORIES[product.category] || product.category}
+                                </span>
+                                {product.price && (
+                                    <span className="text-xs font-semibold text-neutral-900">{product.price}</span>
+                                )}
+                            </div>
                         </div>
 
                         <span className="material-symbols-outlined text-neutral-300">edit</span>

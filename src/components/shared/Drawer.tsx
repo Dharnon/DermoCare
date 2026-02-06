@@ -51,6 +51,11 @@ export function Drawer({ isOpen, onClose, children, title, description, classNam
                                 {description && <VaulDrawer.Description className="text-secondary text-sm">{description}</VaulDrawer.Description>}
                             </div>
                         )}
+                        {!title && (
+                            <VaulDrawer.Title className="sr-only">
+                                Panel de Detalles
+                            </VaulDrawer.Title>
+                        )}
                     </div>
 
                     {/* Body */}

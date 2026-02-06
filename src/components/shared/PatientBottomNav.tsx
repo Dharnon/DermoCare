@@ -6,9 +6,10 @@ import { cn } from '@/lib/utils';
 import { memo } from 'react';
 
 const navItems = [
-    { label: 'Home', icon: 'home', segment: 'dashboard' },
+    { label: 'Inicio', icon: 'home', segment: 'dashboard' },
     { label: 'Rutina', icon: 'calendar_today', segment: 'routine' },
-    { label: 'Clínica', icon: 'chat_bubble', segment: 'chat' },
+    { label: 'Progreso', icon: 'trending_up', segment: 'progress' },
+    { label: 'Chat', icon: 'chat_bubble', segment: 'chat' },
     { label: 'Perfil', icon: 'person', segment: 'profile' },
 ] as const;
 

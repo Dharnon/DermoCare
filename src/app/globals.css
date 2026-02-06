@@ -121,6 +121,16 @@ body {
   scrollbar-width: none;
 }
 
+/* No scrollbar (for horizontal scroll areas) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Tab styles from wireframe */
 .tab-active {
   background: white;

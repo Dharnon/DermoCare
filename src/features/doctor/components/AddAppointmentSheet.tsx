@@ -29,6 +29,10 @@ export function AddAppointmentSheet({ isOpen, onClose, defaultDate }: AddAppoint
     const [visitType, setVisitType] = useState<VisitType>('follow-up');
     const [reason, setReason] = useState('');
 
+    // UI State for custom details
+    const [isPatientSelectOpen, setIsPatientSelectOpen] = useState(false);
+    const [patientSearch, setPatientSearch] = useState('');
+
     const handleSave = () => {
         if (!patientId || !date || !time) return;
 
@@ -60,20 +64,104 @@ export function AddAppointmentSheet({ isOpen, onClose, defaultDate }: AddAppoint
         >
             <div className="pb-12 pt-4">
                 <div className="space-y-6">
-                    {/* Patient Select */}
-                    <div>
+                    {/* Patient Select (Custom Logic) */}
+                    <div className="relative">
                         <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Paciente</label>
-                        <select
-                            value={patientId}
-                            onChange={(e) => setPatientId(e.target.value)}
-                            className="w-full p-4 rounded-2xl bg-neutral-50 border border-neutral-100 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+
+                        {/* Trigger Button */}
+                        <button
+                            onClick={() => setIsPatientSelectOpen(!isPatientSelectOpen)}
+                            className={cn(
+                                "w-full p-2 pr-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-left flex items-center justify-between transition-all",
+                                isPatientSelectOpen ? "ring-2 ring-primary/20 bg-white" : ""
+                            )}
                         >
-                            <option value="">Seleccionar paciente...</option>
-                            {patients.filter(p => p.role === 'patient').map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
+                            {patientId ? (
+                                <div className="flex items-center gap-3">
+                                    {(() => {
+                                        const p = patients.find(p => p.id === patientId);
+                                        return (
+                                            <>
+                                                <img
+                                                    src={p?.avatarUrl}
+                                                    alt={p?.name}
+                                                    className="w-10 h-10 rounded-full object-cover bg-neutral-200"
+                                                />
+                                                <span className="font-bold text-neutral-800">{p?.name}</span>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            ) : (
+                                <span className="p-2 text-neutral-400 font-semibold">Seleccionar paciente...</span>
+                            )}
+                            <span className="material-symbols-outlined text-neutral-400">expand_more</span>
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {isPatientSelectOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-neutral-100 z-50 overflow-hidden animation-fade-in">
+                                {/* Search Input */}
+                                <div className="p-2 border-b border-neutral-100 sticky top-0 bg-white z-10">
+                                    <div className="relative">
+                                        <span className="material-symbols-outlined absolute left-3 top-2.5 text-neutral-400 text-[18px]">search</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar paciente..."
+                                            value={patientSearch}
+                                            onChange={(e) => setPatientSearch(e.target.value)}
+                                            className="w-full pl-9 pr-4 py-2 bg-neutral-50 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-neutral-400"
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Patient List */}
+                                <div className="max-h-60 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                                    {patients
+                                        .filter(p => p.role === 'patient' && p.name.toLowerCase().includes(patientSearch.toLowerCase()))
+                                        .map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => {
+                                                    setPatientId(p.id);
+                                                    setIsPatientSelectOpen(false);
+                                                    setPatientSearch('');
+                                                }}
+                                                className={cn(
+                                                    "w-full p-2 rounded-xl flex items-center gap-3 hover:bg-neutral-50 transition-colors text-left",
+                                                    patientId === p.id ? "bg-primary/10 ring-1 ring-primary/20" : ""
+                                                )}
+                                            >
+                                                <img
+                                                    src={p.avatarUrl}
+                                                    alt={p.name}
+                                                    className="w-10 h-10 rounded-full object-cover bg-neutral-200"
+                                                />
+                                                <div className="flex-1">
+                                                    <p className={cn(
+                                                        "text-sm font-bold",
+                                                        patientId === p.id ? "text-primary" : "text-neutral-800"
+                                                    )}>
+                                                        {p.name}
+                                                    </p>
+                                                    <p className="text-xs text-secondary truncate">{p.contactInfo?.email}</p>
+                                                </div>
+                                                {patientId === p.id && (
+                                                    <span className="material-symbols-outlined text-primary text-[20px]">check</span>
+                                                )}
+                                            </button>
+                                        ))}
+
+                                    {patients.filter(p => p.role === 'patient' && p.name.toLowerCase().includes(patientSearch.toLowerCase())).length === 0 && (
+                                        <div className="p-4 text-center text-neutral-400 text-sm">
+                                            No se encontraron pacientes
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div> (Custom Logic end)
 
                     {/* Date & Time */}
                     <div className="flex gap-4">

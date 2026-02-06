@@ -17,6 +17,8 @@ export interface User {
     name: string;
     avatarUrl?: string;
     contactInfo: ContactInfo;
+    bio?: string;
+    specialization?: string;
 }
 
 export interface Product {
@@ -24,11 +26,19 @@ export interface Product {
     name: string;
     description: string;
     imageUrl?: string;
-    category: 'cleanser' | 'serum' | 'moisturizer' | 'sunscreen' | 'treatment' | 'other';
+    category: string; // Changed from union to string to allow custom categories
     frequency: string; // e.g., "Twice daily", "Every other day"
     applicationMethod: string; // e.g., "Apply on damp face, massage for 60s"
     iconName?: string; // Material icon name
     iconBgColor?: string; // Tailwind color class
+    // Shopping/Info details
+    price?: string;
+    brand?: string;
+    purchaseLink?: string;
+    // Deep Details
+    ingredients?: string;
+    benefits?: string[];
+    warnings?: string;
 }
 
 export interface RoutineProduct extends Product {
@@ -69,6 +79,8 @@ export interface ClinicalNote {
     patientId: string;
     proId: string;
     content: string;
+    type?: VisitType;
+    photos?: string[];
     isPrivate: boolean;
     createdAt: Date;
 }
@@ -106,6 +118,24 @@ export interface PatientSummary {
     riskLevel: RiskLevel;
     treatmentType: string;
     dayNumber: number;
+}
+
+export interface ProgressEntry {
+    id: string;
+    patientId: string;
+    photoUrl: string;
+    notes?: string;
+    professionalFeedback?: string;
+    createdAt: string; // ISO string
+}
+
+export interface ProductReview {
+    id: string;
+    productId: string;
+    patientId: string;
+    rating: number;
+    comment?: string;
+    createdAt: string;
 }
 
 export interface ChatMessage {

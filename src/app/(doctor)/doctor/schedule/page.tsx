@@ -145,7 +145,7 @@ export default function SchedulePage() {
             </header>
 
             {/* Week Day Selector */}
-            <div className="flex gap-3 overflow-x-auto hide-scrollbar px-6 mb-8">
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar px-6 py-4 mb-4">
                 {days.map((day) => (
                     <button
                         key={day.date}

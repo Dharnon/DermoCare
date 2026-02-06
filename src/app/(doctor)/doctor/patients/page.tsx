@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useDermoCareStore } from '@/lib/store';
 import { useUIStore } from '@/lib/ui-store';
 import { AdherenceBar } from '@/features/doctor/components/AdherenceBar';
-import { AddPatientForm } from '@/features/doctor/components/AddPatientForm';
+import { InvitePatientSheet } from '@/features/doctor/components/InvitePatientSheet';
 import { useRouter } from 'next/navigation';
 
 const tabs = ['Todos', 'Activos', 'En Riesgo'] as const;
@@ -16,7 +16,7 @@ export default function PatientsPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>('Todos');
     const [searchQuery, setSearchQuery] = useState('');
-    const [showAddPatient, setShowAddPatient] = useState(false);
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
 
     const { getPatientSummaries } = useDermoCareStore();
     const { setFab, hideFab } = useUIStore();
@@ -24,7 +24,7 @@ export default function PatientsPage() {
 
     // Set global FAB action
     useEffect(() => {
-        setFab(() => setShowAddPatient(true), 'person_add');
+        setFab(() => setIsInviteOpen(true), 'person_add');
         return () => hideFab();
     }, [setFab, hideFab]);
 
@@ -172,11 +172,10 @@ export default function PatientsPage() {
                 </section>
             </main>
 
-            {/* Add Patient Form */}
-            <AddPatientForm
-                isOpen={showAddPatient}
-                onClose={() => setShowAddPatient(false)}
-                onSuccess={handlePatientAdded}
+            {/* Invite Patient Sheet */}
+            <InvitePatientSheet
+                isOpen={isInviteOpen}
+                onClose={() => setIsInviteOpen(false)}
             />
         </div>
     );

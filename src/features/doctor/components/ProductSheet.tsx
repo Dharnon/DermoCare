@@ -32,10 +32,15 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
     // Form State
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState<Product['category']>('cleanser');
+    const [category, setCategory] = useState<string>('cleanser');
     const [iconName, setIconName] = useState('spa');
     const [frequency, setFrequency] = useState('');
     const [applicationMethod, setApplicationMethod] = useState('');
+
+    // New Fields
+    const [price, setPrice] = useState('');
+    const [brand, setBrand] = useState('');
+    const [purchaseLink, setPurchaseLink] = useState('');
 
     useEffect(() => {
         if (isOpen) {
@@ -47,6 +52,9 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
                 setIconName(product.iconName || 'spa');
                 setFrequency(product.frequency);
                 setApplicationMethod(product.applicationMethod);
+                setPrice(product.price || '');
+                setBrand(product.brand || '');
+                setPurchaseLink(product.purchaseLink || '');
             } else {
                 // Create Mode (Reset)
                 setName('');
@@ -55,6 +63,9 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
                 setIconName('spa');
                 setFrequency('Dos veces al día');
                 setApplicationMethod('Aplicar en rostro limpio');
+                setPrice('');
+                setBrand('');
+                setPurchaseLink('');
             }
         }
     }, [isOpen, product]);
@@ -67,9 +78,12 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
             description,
             category,
             iconName,
-            iconBgColor: CATEGORIES.find(c => c.value === category)?.color,
+            iconBgColor: CATEGORIES.find(c => c.value === category)?.color || 'bg-gray-50 text-gray-600',
             frequency,
             applicationMethod,
+            price,
+            brand,
+            purchaseLink
         };
 
         if (product) {
@@ -109,15 +123,38 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
                 </div>
 
                 <div className="space-y-6">
-                    {/* Name */}
+                    {/* Brand & Name */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-1">
+                            <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Marca</label>
+                            <input
+                                type="text"
+                                value={brand}
+                                onChange={(e) => setBrand(e.target.value)}
+                                placeholder="Ej: La Roche-Posay"
+                                className="w-full p-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                        </div>
+                        <div className="col-span-1">
+                            <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Precio</label>
+                            <input
+                                type="text"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                placeholder="Ej: 24.99€"
+                                className="w-full p-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                        </div>
+                    </div>
+
                     <div>
-                        <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Nombre</label>
+                        <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Nombre del Producto</label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Ej: Gel Limpiador Suave"
-                            className="w-full p-4 rounded-2xl bg-neutral-50 border border-neutral-100 font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            placeholder="Ej: Effaclar Gel"
+                            className="w-full p-4 rounded-2xl bg-neutral-50 border border-neutral-100 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
                         />
                     </div>
 
@@ -133,14 +170,29 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
                         />
                     </div>
 
+                    {/* Link */}
+                    <div>
+                        <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Enlace de Compra</label>
+                        <div className="relative">
+                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400">link</span>
+                            <input
+                                type="text"
+                                value={purchaseLink}
+                                onChange={(e) => setPurchaseLink(e.target.value)}
+                                placeholder="https://..."
+                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-neutral-50 border border-neutral-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 text-blue-500"
+                            />
+                        </div>
+                    </div>
+
                     {/* Category */}
                     <div>
                         <label className="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Categoría</label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 mb-3">
                             {CATEGORIES.map((cat) => (
                                 <button
                                     key={cat.value}
-                                    onClick={() => setCategory(cat.value as Product['category'])}
+                                    onClick={() => setCategory(cat.value)}
                                     className={cn(
                                         "px-3 py-2 rounded-xl text-xs font-bold transition-all border",
                                         category === cat.value
@@ -152,6 +204,13 @@ export function ProductSheet({ product, isOpen, onClose }: ProductSheetProps) {
                                 </button>
                             ))}
                         </div>
+                        <input
+                            type="text"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            placeholder="O escribe una categoría personalizada..."
+                            className="w-full p-3 rounded-xl bg-neutral-50 border border-neutral-100 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        />
                     </div>
 
                     {/* Icon */}

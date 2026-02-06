@@ -29,7 +29,7 @@ export default function ToolsPage() {
             description: 'Preferencias de la app',
             icon: 'settings',
             color: 'bg-neutral-50 text-neutral-600',
-            href: '/doctor/profile', // Reusing profile for now
+            href: '/doctor/settings', // Updated to settings page
             count: null
         }
     ];

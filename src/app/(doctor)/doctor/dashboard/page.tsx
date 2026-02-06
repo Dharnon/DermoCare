@@ -1,9 +1,14 @@
 'use client';
 
 import { useDermoCareStore } from '@/lib/store';
+import { useAuth } from '@/context/AuthContext'; // Added
 import { StatsCard } from '@/features/doctor/components/stats-card';
 import { PendingReviews } from '@/features/doctor/components/pending-reviews';
 import { PatientAdherenceList } from '@/features/doctor/components/PatientAdherenceList';
+import { InvitePatientSheet } from '@/features/doctor/components/InvitePatientSheet';
+import { useState, useEffect } from 'react';
+import { useUIStore } from '@/lib/ui-store';
+import Link from 'next/link';
 
 // Mock pending reviews data
 const pendingReviews = [
@@ -28,6 +33,18 @@ const pendingReviews = [
 
 export default function DoctorDashboardPage() {
     const { currentPro, patients } = useDermoCareStore();
+    const { profile } = useAuth(); // Added
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const { setFab, hideFab } = useUIStore();
+
+    useEffect(() => {
+        setFab(() => setIsInviteOpen(true), 'person_add');
+        return () => hideFab();
+    }, [setFab, hideFab]);
+
+    // Derived display values
+    const displayName = profile?.name || currentPro?.name || 'Doctor';
+    const displayAvatar = profile?.avatar_url || currentPro?.avatarUrl;
 
     return (
         <div className="min-h-screen bg-[#FDFCFB]">
@@ -39,13 +56,13 @@ export default function DoctorDashboardPage() {
                             DermoCare
                         </h1>
                         <p className="text-[#7A869A] font-medium text-sm">
-                            Bienvenida, {currentPro?.name || 'Doctora'}
+                            Hola, {displayName}
                         </p>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-[#F8C6B9]/30 flex items-center justify-center overflow-hidden ios-shadow">
-                        {currentPro?.avatarUrl ? (
+                        {displayAvatar ? (
                             <img
-                                src={currentPro.avatarUrl}
+                                src={displayAvatar}
                                 alt="Doctor"
                                 className="w-full h-full object-cover"
                             />
@@ -87,6 +104,32 @@ export default function DoctorDashboardPage() {
                     />
                 </div>
 
+                {/* Quick Actions */}
+                <div className="mb-8">
+                    <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-4 ml-1">Acciones Rápidas</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={() => setIsInviteOpen(true)}
+                            className="bg-white p-5 rounded-[2rem] ios-shadow border border-slate-50 flex flex-col items-center justify-center text-center active:scale-95 transition-all group"
+                        >
+                            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                                <span className="material-symbols-outlined text-2xl">person_add</span>
+                            </div>
+                            <span className="text-sm font-bold text-slate-800">Invitar Paciente</span>
+                        </button>
+
+                        <Link
+                            href="/doctor/tools"
+                            className="bg-white p-5 rounded-[2rem] ios-shadow border border-slate-50 flex flex-col items-center justify-center text-center active:scale-95 transition-all group"
+                        >
+                            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-3 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                <span className="material-symbols-outlined text-2xl">edit_document</span>
+                            </div>
+                            <span className="text-sm font-bold text-slate-800">Nueva Plantilla</span>
+                        </Link>
+                    </div>
+                </div>
+
                 {/* Pending Reviews */}
                 <div className="mb-8">
                     <PendingReviews reviews={pendingReviews} />
@@ -98,7 +141,12 @@ export default function DoctorDashboardPage() {
                 </div>
             </main>
 
-            {/* Note: FAB removed - using the central + button in DoctorBottomNav instead */}
+
+            <InvitePatientSheet
+                isOpen={isInviteOpen}
+                onClose={() => setIsInviteOpen(false)}
+            />
         </div>
     );
 }
+

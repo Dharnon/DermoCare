@@ -17,7 +17,7 @@ export default function HomePage() {
       {/* Portal Selection */}
       <div className="w-full max-w-md space-y-4">
         <Link
-          href="/doctor/dashboard"
+          href="/auth"
           className="block w-full p-6 bg-white rounded-3xl ios-shadow hover:shadow-md transition-all hover:scale-[1.02]"
         >
           <div className="flex items-center gap-4">
@@ -27,14 +27,14 @@ export default function HomePage() {
               </span>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Doctor Portal</h2>
-              <p className="text-secondary">Manage patients & treatments</p>
+              <h2 className="text-xl font-bold text-neutral-900">Portal Profesional</h2>
+              <p className="text-secondary">Gestiona pacientes y tratamientos</p>
             </div>
           </div>
         </Link>
 
         <Link
-          href="/patient/dashboard"
+          href="/auth"
           className="block w-full p-6 bg-white rounded-3xl ios-shadow hover:shadow-md transition-all hover:scale-[1.02]"
         >
           <div className="flex items-center gap-4">
@@ -44,8 +44,8 @@ export default function HomePage() {
               </span>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-neutral-900">Patient App</h2>
-              <p className="text-secondary">Track your skin journey</p>
+              <h2 className="text-xl font-bold text-neutral-900">App Paciente</h2>
+              <p className="text-secondary">Tu plan de cuidado dermatológico</p>
             </div>
           </div>
         </Link>
