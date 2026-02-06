@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useDermoCareStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 interface EditProfileSheetProps {
     isOpen: boolean;
@@ -127,6 +129,12 @@ export default function PatientProfilePage() {
     const { currentPatient, currentPro, updatePatient } = useDermoCareStore();
     const [showEditSheet, setShowEditSheet] = useState(false);
     const [toastVisible, setToastVisible] = useState(false);
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/auth');
+    };
 
     const handleSaveProfile = (data: { name: string; email: string; phone: string }) => {
         if (!currentPatient) return;
@@ -287,7 +295,10 @@ export default function PatientProfilePage() {
                 </div>
 
                 {/* Logout Button */}
-                <button className="w-full bg-red-50 text-red-500 font-bold py-4 rounded-[1.5rem] flex items-center justify-center gap-2 mt-8">
+                <button
+                    onClick={handleLogout}
+                    className="w-full bg-red-50 text-red-500 font-bold py-4 rounded-[1.5rem] flex items-center justify-center gap-2 mt-8 active:scale-[0.98] transition-transform"
+                >
                     <span className="material-symbols-outlined text-lg">logout</span>
                     Cerrar Sesión
                 </button>

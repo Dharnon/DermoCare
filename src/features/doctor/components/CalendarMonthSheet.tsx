@@ -88,30 +88,10 @@ export function CalendarMonthSheet({ isOpen, onClose, currentDate, onDateSelect 
         <Drawer
             isOpen={isOpen}
             onClose={onClose}
-            title={monthLabel}
             className="max-h-[85vh] min-h-[50vh]"
         >
             <div className="pb-12 pt-4">
-                {/* Calendar Header */}
                 <div className="flex items-center justify-between mb-8">
-                    <button
-                        onClick={handlePrevMonth}
-                        className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100"
-                    >
-                        <span className="material-symbols-outlined text-gray-600">chevron_left</span>
-                    </button>
-                    {/* Title handled by Drawer prop or custom if needed, but title prop is simpler. Actually custom is better for prev/next buttons layout */}
-                </div>
-
-                {/* Re-implementing custom header inside body because Drawer header is simple text. 
-                     Wait, I can put the prev/next buttons IN the body, and let Drawer handle the main title? 
-                     Or suppress Drawer title and do custom header?
-                     The original had title centered between buttons.
-                     Let's suppress Drawer title and do custom layout in body.
-                 */}
-
-                {/* Resetting content to match original layout inside Drawer body */}
-                <div className="flex items-center justify-between mb-8 -mt-6"> {/* Negative margin to pull up? No, just normal flow */}
                     <button
                         onClick={handlePrevMonth}
                         className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100"

@@ -43,6 +43,7 @@ export interface Product {
 
 export interface RoutineProduct extends Product {
     isCompleted: boolean;
+    order?: number;
     instructions?: string; // New: Custom instructions for this product in the routine
 }
 

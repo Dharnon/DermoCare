@@ -3,7 +3,6 @@
 import { useDermoCareStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext'; // Added
 import { StatsCard } from '@/features/doctor/components/stats-card';
-import { PendingReviews } from '@/features/doctor/components/pending-reviews';
 import { PatientAdherenceList } from '@/features/doctor/components/PatientAdherenceList';
 import { InvitePatientSheet } from '@/features/doctor/components/InvitePatientSheet';
 import { useState, useEffect } from 'react';
@@ -12,37 +11,27 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-// Mock pending reviews data
-const pendingReviews = [
-    {
-        id: '1',
-        patientName: 'Elena Gilbert',
-        condition: 'Tratamiento Acné',
-        day: 14,
-        hasNewUpdate: true,
-        patientAvatar:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuCji5F1_QArQELogjT3aonVVgieY10JSt9SDXLQVccy1G3sjWGW-vUnCA2OA7XV1MBlmP1v9aaD9peUWGRcOYF2cg1ULSNe7sbJf4UUc0U_AYfy7AgWo50Z1b4UxRiB4AvlVObW5XX9AhOfAPXH9yVm4agCm8a9J2aupPWpTITQY8g1c1l-Qmqf94f96BrRYRcU7ZHpaURBZXfgOyghOZJSbdQVj5-KY7UcKFr31I9Mq-Zj1_QxDLG8-b-iLQZYdnp8RT8Tnx-ae3c',
-    },
-    {
-        id: '2',
-        patientName: 'Stefan Salvatore',
-        condition: 'Cuidado Eczema',
-        day: 7,
-        patientAvatar:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuB0r-Aoz5_kPcTwk6xXUmtllj8x74kC0L-rY3cNgnYnhLLokUYrTcxAkGt1bDcLbmsyl9Iac6kBhpV0g-DArVJqT02_AyFI4v6Tq12T45cGE8zFWP8xkdkSDv1pZ2_2jFlmodCxLOvI69ONR4ZGHMlHDuDp36XY0DJNK_qnvcTcKu-PuNpz-fCExOakEY6WKSwJncKBhT_5sMG75QKEuCQXSgZnvLTO0wp357fSOG7gHwkLG2rUNW6r76rfoRYbrw4JDJhuOEiWvwo',
-    },
-];
-
 export default function DoctorDashboardPage() {
-    const { currentPro, patients } = useDermoCareStore();
+    const { currentPro, patients, fetchDoctorData, appointments } = useDermoCareStore();
     const { profile } = useAuth(); // Added
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const { setFab, hideFab } = useUIStore();
 
     useEffect(() => {
+        const proId = profile?.id || currentPro?.id;
+        if (proId) {
+            fetchDoctorData(proId);
+        }
+    }, [profile, currentPro?.id, fetchDoctorData]);
+
+    useEffect(() => {
         setFab(() => setIsInviteOpen(true), 'person_add');
         return () => hideFab();
     }, [setFab, hideFab]);
+
+    // Calculate consultations for today
+    const today = new Date().toISOString().split('T')[0];
+    const todayConsultations = appointments.filter(a => a.date === today && a.status !== 'cancelled').length;
 
     // Derived display values
     const displayName = profile?.name || currentPro?.name || 'Doctor';
@@ -99,7 +88,7 @@ export default function DoctorDashboardPage() {
                     />
                     <StatsCard
                         icon="calendar_today"
-                        value="08"
+                        value={String(todayConsultations).padStart(2, '0')}
                         label="Consultas Hoy"
                         iconBgColor="bg-blue-100"
                         iconColor="text-blue-500"
@@ -132,13 +121,8 @@ export default function DoctorDashboardPage() {
                     </div>
                 </div>
 
-                {/* Pending Reviews */}
-                <div className="mb-8">
-                    <PendingReviews reviews={pendingReviews} />
-                </div>
-
                 {/* Patient Adherence List */}
-                <div>
+                <div className="mt-8">
                     <PatientAdherenceList />
                 </div>
             </main>

@@ -259,9 +259,9 @@ interface DermoCareState {
     getClinicalNotes: (patientId: string) => ClinicalNote[];
 
     // Actions - Appointments
-    addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt'>) => Appointment;
-    updateAppointmentStatus: (id: string, status: AppointmentStatus) => void;
-    cancelAppointment: (id: string) => void;
+    addAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt'>) => Promise<Appointment | null>;
+    updateAppointmentStatus: (id: string, status: AppointmentStatus) => Promise<void>;
+    cancelAppointment: (id: string) => Promise<void>;
     getPatientAppointments: (patientId: string) => Appointment[];
     getDoctorAppointments: (proId: string, date?: string) => Appointment[];
     getNextPatientAppointment: (patientId: string) => Appointment | undefined;
@@ -287,6 +287,7 @@ interface DermoCareState {
 
     // Actions - Data Fetching
     fetchPatientData: (patientId: string) => Promise<void>;
+    fetchDoctorData: (proId: string) => Promise<void>;
     setSessionUser: (user: User) => void;
 
     // Actions - Reviews
@@ -354,14 +355,15 @@ export const useDermoCareStore = create<DermoCareState>()(
     persist(
         (set, get) => ({
             // Initial state with mock data
-            currentUser: MOCK_CURRENT_PATIENT, // Added
-            currentPatient: MOCK_CURRENT_PATIENT,
-            currentPro: MOCK_CURRENT_PRO,
-            products: MOCK_PRODUCTS,
-            patients: MOCK_PATIENTS,
+            // Initial state - CLEAN START (No Mocks)
+            currentUser: null,
+            currentPatient: null,
+            currentPro: null,
+            products: MOCK_PRODUCTS, // Keeping products as base catalog
+            patients: [],
             clinicalNotes: [],
-            appointments: MOCK_APPOINTMENTS,
-            chatMessages: MOCK_MESSAGES,
+            appointments: [],
+            chatMessages: [],
             progressEntries: [],
             reviews: [],
 
@@ -382,97 +384,118 @@ export const useDermoCareStore = create<DermoCareState>()(
                 }
             ],
 
-            routines: [
-                {
-                    id: 'routine-am-1',
-                    patientId: 'patient-1',
-                    proId: 'pro-1',
-                    scheduleType: 'am',
-                    products: MOCK_PRODUCTS.slice(0, 4).map((p, i) => ({
-                        ...p,
-                        order: i,
-                        isCompleted: false,
-                        instructions: i === 1 ? 'Aplicar solo en las manchas oscuras.' : undefined
-                    })),
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-                {
-                    id: 'routine-pm-1',
-                    patientId: 'patient-1',
-                    proId: 'pro-1',
-                    scheduleType: 'pm',
-                    products: [MOCK_PRODUCTS[0], MOCK_PRODUCTS[2], MOCK_PRODUCTS[4]].map((p, i) => ({
-                        ...p,
-                        order: i,
-                        isCompleted: false,
-                        instructions: i === 2 ? 'Usar muy poca cantidad (tamaño arroz).' : undefined
-                    })),
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-                {
-                    id: 'routine-am-2',
-                    patientId: 'patient-2',
-                    proId: 'pro-1',
-                    scheduleType: 'am',
-                    products: MOCK_PRODUCTS.slice(0, 3).map((p, i) => ({ ...p, order: i, isCompleted: false })),
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-                {
-                    id: 'routine-am-3',
-                    patientId: 'patient-3',
-                    proId: 'pro-1',
-                    scheduleType: 'am',
-                    products: MOCK_PRODUCTS.map((p, i) => ({ ...p, order: i, isCompleted: false })),
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-            ],
+            routines: [],
 
-            // Pre-populate with some adherence logs for demo
-            adherenceLogs: [
-                // Patient 1 - yesterday (some completed)
-                { id: 'log-1', routineId: 'routine-am-1', productId: 'prod-1', date: yesterday, scheduleType: 'am', status: 'checked', timestamp: new Date() },
-                { id: 'log-2', routineId: 'routine-am-1', productId: 'prod-2', date: yesterday, scheduleType: 'am', status: 'checked', timestamp: new Date() },
-                { id: 'log-3', routineId: 'routine-am-1', productId: 'prod-3', date: yesterday, scheduleType: 'am', status: 'checked', timestamp: new Date() },
-                // Patient 1 - today (partial)
-                { id: 'log-4', routineId: 'routine-am-1', productId: 'prod-1', date: today, scheduleType: 'am', status: 'checked', timestamp: new Date() },
-                { id: 'log-5', routineId: 'routine-am-1', productId: 'prod-2', date: today, scheduleType: 'am', status: 'checked', timestamp: new Date() },
-                { id: 'log-6', routineId: 'routine-am-1', productId: 'prod-3', date: today, scheduleType: 'am', status: 'checked', timestamp: new Date() },
-            ],
+            // Clean start for logs
+            adherenceLogs: [],
 
-            // Actions - Templates
-            saveRoutineAsTemplate: (routineId, name, icon) => {
+            // Actions - Templates (Supabase connected)
+            saveRoutineAsTemplate: async (routineId, name, icon) => {
                 const routine = get().routines.find(r => r.id === routineId);
-                if (!routine) return;
+                if (!routine || !routine.proId) return;
 
-                const newTemplate: RoutineTemplate = {
-                    id: `temp-${Date.now()}`,
-                    name,
-                    icon,
-                    scheduleType: routine.scheduleType,
-                    products: routine.products.map(p => p.id)
-                };
+                // 1. Create Template
+                const { data: templateData, error: templateError } = await supabase
+                    .from('routine_templates')
+                    .insert({
+                        name,
+                        icon,
+                        schedule_type: routine.scheduleType,
+                        organization_id: (get().currentUser as any)?.organization_id
+                    })
+                    .select()
+                    .single();
 
-                set(state => ({ templates: [...state.templates, newTemplate] }));
+                if (templateError) throw templateError;
+
+                // 2. Add products to template
+                const templateProducts = routine.products.map((p, index) => ({
+                    template_id: templateData.id,
+                    product_id: p.id,
+                    instructions: p.instructions,
+                    order: index
+                }));
+
+                await supabase.from('routine_template_products').insert(templateProducts);
+
+                // Refresh templates
+                const currentProId = (get().currentUser as any)?.id;
+                if (currentProId) get().fetchDoctorData(currentProId);
             },
 
-            applyTemplateToRoutine: (routineId, templateId) => {
-                const template = get().templates.find(t => t.id === templateId);
-                const { products } = get();
-
-                if (!template) return;
-
-                const routineProducts = template.products
-                    .map((id, index) => {
-                        const product = products.find(p => p.id === id);
-                        // When applying template, we reset custom instructions
-                        return product ? { ...product, order: index, isCompleted: false } : null;
+            addTemplate: async (template) => {
+                const { data, error } = await supabase
+                    .from('routine_templates')
+                    .insert({
+                        name: template.name,
+                        icon: template.icon,
+                        schedule_type: template.scheduleType,
+                        organization_id: (get().currentUser as any)?.organization_id
                     })
-                    .filter(Boolean) as import('./types').RoutineProduct[];
+                    .select()
+                    .single();
 
+                if (!error && data) {
+                    // Add products if any
+                    if (template.products && template.products.length > 0) {
+                        const tps = template.products.map((pid, index) => ({
+                            template_id: data.id,
+                            product_id: pid,
+                            order: index
+                        }));
+                        await supabase.from('routine_template_products').insert(tps);
+                    }
+
+                    const currentProId = (get().currentUser as any)?.id;
+                    if (currentProId) get().fetchDoctorData(currentProId);
+                }
+            },
+
+            updateTemplate: async (templateId, updates) => {
+                await supabase
+                    .from('routine_templates')
+                    .update(updates)
+                    .eq('id', templateId);
+
+                const currentProId = (get().currentUser as any)?.id;
+                if (currentProId) get().fetchDoctorData(currentProId);
+            },
+
+            deleteTemplate: async (templateId) => {
+                await supabase
+                    .from('routine_templates')
+                    .delete()
+                    .eq('id', templateId);
+
+                set(state => ({
+                    templates: state.templates.filter(t => t.id !== templateId)
+                }));
+            },
+
+            applyTemplateToRoutine: async (routineId, templateId) => {
+                // Fetch template products with instructions
+                const { data: tpData, error } = await supabase
+                    .from('routine_template_products')
+                    .select(`
+                        id,
+                        product_id,
+                        instructions,
+                        order,
+                        products (*)
+                    `)
+                    .eq('template_id', templateId)
+                    .order('order', { ascending: true });
+
+                if (error) return;
+
+                const routineProducts = tpData.map((tp: any) => ({
+                    ...tp.products,
+                    order: tp.order,
+                    instructions: tp.instructions,
+                    isCompleted: false
+                })) as import('./types').RoutineProduct[];
+
+                // Update local state
                 set(state => ({
                     routines: state.routines.map(r =>
                         r.id === routineId
@@ -480,69 +503,83 @@ export const useDermoCareStore = create<DermoCareState>()(
                             : r
                     )
                 }));
-            },
 
-            deleteTemplate: (templateId) => {
-                set(state => ({
-                    templates: state.templates.filter(t => t.id !== templateId)
+                // Update in DB
+                // 1. Clear existing routine products
+                await supabase.from('routine_products').delete().eq('routine_id', routineId);
+                // 2. Insert new ones
+                const newRPs = routineProducts.map(p => ({
+                    routine_id: routineId,
+                    product_id: p.id,
+                    instructions: p.instructions,
+                    order: p.order
                 }));
+                await supabase.from('routine_products').insert(newRPs);
             },
 
-            addTemplate: (template) => {
-                const newTemplate: RoutineTemplate = {
-                    ...template,
-                    id: `temp-${Date.now()}`,
-                    products: template.products || []
-                };
-                set(state => ({ templates: [...state.templates, newTemplate] }));
+            // Actions - Inventory products (Supabase connected)
+            addProduct: async (productData) => {
+                const { data, error } = await supabase
+                    .from('products')
+                    .insert({
+                        name: productData.name,
+                        description: productData.description,
+                        category: productData.category,
+                        frequency: productData.frequency,
+                        application_method: productData.applicationMethod,
+                        icon_name: productData.iconName,
+                        icon_bg_color: productData.iconBgColor,
+                        price: productData.price,
+                        brand: productData.brand,
+                        purchase_link: productData.purchaseLink,
+                        ingredients: productData.ingredients,
+                        benefits: productData.benefits,
+                        warnings: productData.warnings,
+                        organization_id: (get().currentUser as any)?.organization_id
+                    })
+                    .select()
+                    .single();
+
+                if (!error && data) {
+                    const currentProId = (get().currentUser as any)?.id;
+                    if (currentProId) get().fetchDoctorData(currentProId);
+                }
             },
 
-            updateTemplate: (templateId, updates) => {
-                set(state => ({
-                    templates: state.templates.map(t =>
-                        t.id === templateId ? { ...t, ...updates } : t
-                    )
-                }));
+            updateProduct: async (id, updates) => {
+                // Map camelCase to snake_case for Supabase if needed
+                const dbUpdates: any = {};
+                if (updates.name) dbUpdates.name = updates.name;
+                if (updates.description) dbUpdates.description = updates.description;
+                if (updates.category) dbUpdates.category = updates.category;
+                if (updates.frequency) dbUpdates.frequency = updates.frequency;
+                if (updates.applicationMethod) dbUpdates.application_method = updates.applicationMethod;
+                if (updates.iconName) dbUpdates.icon_name = updates.iconName;
+                if (updates.iconBgColor) dbUpdates.icon_bg_color = updates.iconBgColor;
+                if (updates.price) dbUpdates.price = updates.price;
+                if (updates.brand) dbUpdates.brand = updates.brand;
+                if (updates.purchaseLink) dbUpdates.purchase_link = updates.purchaseLink;
+                if (updates.ingredients) dbUpdates.ingredients = updates.ingredients;
+                if (updates.benefits) dbUpdates.benefits = updates.benefits;
+                if (updates.warnings) dbUpdates.warnings = updates.warnings;
+
+                await supabase
+                    .from('products')
+                    .update(dbUpdates)
+                    .eq('id', id);
+
+                const currentProId = (get().currentUser as any)?.id;
+                if (currentProId) get().fetchDoctorData(currentProId);
             },
 
-            // Actions - Inventory products
-            addProduct: (productData) => {
-                const newProduct: Product = {
-                    ...productData,
-                    id: `prod-${Date.now()}`,
-                };
-                set((state) => ({ products: [...state.products, newProduct] }));
-            },
+            deleteProduct: async (id) => {
+                await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', id);
 
-            updateProduct: (id, updates) => {
-                set((state) => ({
-                    products: state.products.map((p) =>
-                        p.id === id ? { ...p, ...updates } : p
-                    ),
-                    // Also update routines that contain this product?
-                    // Ideally yes to keep coherence, but RoutineProduct extends Product.
-                    // If we change name/icon in catalog, it should reflect in routines.
-                    // Since routine.products are independent objects in current implementation (copied on add),
-                    // we need to update them too to keep them in sync.
-                    routines: state.routines.map(r => ({
-                        ...r,
-                        products: r.products.map(rp =>
-                            rp.id === id ? { ...rp, ...updates } : rp
-                        )
-                    }))
-                }));
-            },
-
-            deleteProduct: (id) => {
-                set((state) => ({
-                    products: state.products.filter((p) => p.id !== id),
-                    // Remove from all routines
-                    routines: state.routines.map(r => ({
-                        ...r,
-                        products: r.products.filter(p => p.id !== id),
-                        updatedAt: new Date()
-                    }))
-                }));
+                const currentProId = (get().currentUser as any)?.id;
+                if (currentProId) get().fetchDoctorData(currentProId);
             },
 
             updateProductInstructions: (routineId, productId, instructions) => {
@@ -853,31 +890,67 @@ export const useDermoCareStore = create<DermoCareState>()(
             getClinicalNotes: (patientId) =>
                 get().clinicalNotes.filter((n) => n.patientId === patientId),
 
-            // Appointment Actions
-            addAppointment: (appointmentData) => {
-                const newAppointment: Appointment = {
-                    ...appointmentData,
-                    id: `apt-${Date.now()}`,
-                    createdAt: new Date(),
-                };
-                set((state) => ({ appointments: [...state.appointments, newAppointment] }));
-                return newAppointment;
+            // Appointment Actions (Supabase connected)
+            addAppointment: async (appointmentData) => {
+                const { data, error } = await supabase
+                    .from('appointments')
+                    .insert({
+                        patient_id: appointmentData.patientId,
+                        pro_id: appointmentData.proId,
+                        date: appointmentData.date,
+                        time: appointmentData.time,
+                        status: appointmentData.status,
+                        visit_type: appointmentData.visitType,
+                        reason: appointmentData.reason
+                    })
+                    .select()
+                    .single();
+
+                if (!error && data) {
+                    const newAppointment: Appointment = {
+                        id: data.id,
+                        patientId: data.patient_id,
+                        proId: data.pro_id,
+                        date: data.date,
+                        time: data.time,
+                        status: data.status,
+                        visitType: data.visit_type,
+                        reason: data.reason,
+                        notes: data.notes || '',
+                        createdAt: new Date(data.created_at)
+                    };
+                    set((state) => ({ appointments: [...state.appointments, newAppointment] }));
+                    return newAppointment;
+                }
+                return null;
             },
 
-            updateAppointmentStatus: (id, status) => {
+            updateAppointmentStatus: async (id, status) => {
+                // Optimistic update
                 set((state) => ({
                     appointments: state.appointments.map((apt) =>
                         apt.id === id ? { ...apt, status } : apt
                     ),
                 }));
+
+                await supabase
+                    .from('appointments')
+                    .update({ status })
+                    .eq('id', id);
             },
 
-            cancelAppointment: (id) => {
+            cancelAppointment: async (id) => {
+                // Optimistic update
                 set((state) => ({
                     appointments: state.appointments.map((apt) =>
                         apt.id === id ? { ...apt, status: 'cancelled' as const } : apt
                     ),
                 }));
+
+                await supabase
+                    .from('appointments')
+                    .update({ status: 'cancelled' })
+                    .eq('id', id);
             },
 
             getPatientAppointments: (patientId) => {
@@ -1004,6 +1077,104 @@ export const useDermoCareStore = create<DermoCareState>()(
 
                 } catch (error) {
                     console.error('Error fetching patient data:', error);
+                }
+            },
+
+            fetchDoctorData: async (proId: string) => {
+                try {
+                    // 1. Fetch Patients (those associated with this pro/org)
+                    // For now, fetch all of the same organization
+                    const { profile } = get() as any; // Need to check how we get pro's org
+
+                    const { data: patientsData, error: patientsError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('role', 'patient'); // Later improve with org_id filter if possible
+
+                    if (patientsError) throw patientsError;
+
+                    // 3. Fetch Products for this organization
+                    const { data: productsData, error: prodError } = await supabase
+                        .from('products')
+                        .select('*'); // If organization_id is set up correctly in RLS or filter
+
+                    if (prodError) throw prodError;
+
+                    // 4. Fetch Routine Templates
+                    const { data: templatesData, error: tempError } = await supabase
+                        .from('routine_templates')
+                        .select(`
+                            *,
+                            routine_template_products (
+                                product_id
+                            )
+                        `);
+
+                    if (tempError) throw tempError;
+
+                    const loadedPatients: User[] = patientsData.map((p: any) => ({
+                        id: p.id,
+                        name: p.name,
+                        role: p.role,
+                        avatarUrl: p.avatar_url,
+                        contactInfo: { email: p.email }
+                    }));
+
+                    // Fetch Appointments for this doctor
+                    const { data: appointmentsData, error: aptError } = await supabase
+                        .from('appointments')
+                        .select('*')
+                        .eq('pro_id', proId);
+
+                    if (aptError) throw aptError;
+
+                    const loadedProducts: Product[] = productsData.map((p: any) => ({
+                        id: p.id,
+                        name: p.name,
+                        description: p.description,
+                        category: p.category,
+                        frequency: p.frequency,
+                        applicationMethod: p.application_method,
+                        iconName: p.icon_name,
+                        iconBgColor: p.icon_bg_color,
+                        price: p.price,
+                        brand: p.brand,
+                        purchaseLink: p.purchase_link,
+                        ingredients: p.ingredients,
+                        benefits: p.benefits,
+                        warnings: p.warnings
+                    }));
+
+                    const loadedTemplates: RoutineTemplate[] = templatesData.map((t: any) => ({
+                        id: t.id,
+                        name: t.name,
+                        icon: t.icon || 'auto_awesome',
+                        scheduleType: t.schedule_type as 'am' | 'pm',
+                        products: t.routine_template_products.map((tp: any) => tp.product_id)
+                    }));
+
+                    const loadedAppointments: Appointment[] = appointmentsData.map((a: any) => ({
+                        id: a.id,
+                        patientId: a.patient_id,
+                        proId: a.pro_id,
+                        date: a.date,
+                        time: a.time,
+                        status: a.status,
+                        visitType: a.visit_type as VisitType,
+                        reason: a.reason,
+                        notes: a.notes || '',
+                        createdAt: new Date(a.created_at)
+                    }));
+
+                    set({
+                        patients: loadedPatients,
+                        products: loadedProducts.length > 0 ? loadedProducts : MOCK_PRODUCTS, // Fallback if empty
+                        templates: loadedTemplates,
+                        appointments: loadedAppointments
+                    });
+
+                } catch (error) {
+                    console.error('Error fetching doctor data:', error);
                 }
             },
 

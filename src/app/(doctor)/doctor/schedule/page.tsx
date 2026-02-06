@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useDermoCareStore } from "@/lib/store";
+import { useAuth } from "@/context/AuthContext";
 import { useUIStore } from "@/lib/ui-store"; // Added
 import { formatDate } from "@/lib/adherence";
 import type { AppointmentStatus } from "@/lib/types";
@@ -32,17 +33,26 @@ export default function SchedulePage() {
         setHasMounted(true);
     }, []);
 
+    const { profile } = useAuth();
     const {
         currentPro,
         getDoctorAppointments,
         getPatientById,
         updateAppointmentStatus,
         cancelAppointment,
+        fetchDoctorData,
     } = useDermoCareStore();
+
+    useEffect(() => {
+        const proId = profile?.id || currentPro?.id;
+        if (proId) {
+            fetchDoctorData(proId);
+        }
+    }, [profile, currentPro?.id, fetchDoctorData]);
 
     // Generate week days starting from today
     const days = useMemo(() => {
-        if (!hasMounted || !currentPro) return [];
+        if (!hasMounted) return [];
         const result: { date: string; dayName: string; dayNumber: number; hasAppointments: boolean }[] = [];
         const today = new Date();
 
@@ -50,8 +60,9 @@ export default function SchedulePage() {
             const date = new Date(today);
             date.setDate(today.getDate() + i);
             const dateString = formatDate(date);
-            const dayApts = getDoctorAppointments(currentPro.id, dateString)
-                .filter(apt => apt.status !== 'cancelled');
+            const dayApts = currentPro
+                ? getDoctorAppointments(currentPro.id, dateString).filter(apt => apt.status !== 'cancelled')
+                : [];
 
             result.push({
                 date: dateString,
