@@ -10,6 +10,8 @@ import { useState, useEffect } from 'react';
 import { useUIStore } from '@/lib/ui-store';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 // Mock pending reviews data
 const pendingReviews = [
     {
