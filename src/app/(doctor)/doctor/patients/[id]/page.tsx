@@ -10,6 +10,7 @@ import { RoutineAssignmentSheet } from '@/features/doctor/components/RoutineAssi
 import { EditRoutineSheet } from '@/features/doctor/components/EditRoutineSheet';
 import { DoctorChatSheet } from '@/features/doctor/components/DoctorChatSheet';
 import { calculateWeeklyAdherence, getAdherenceRiskLevel } from '@/lib/adherence';
+import { useAuth } from '@/context/AuthContext';
 import type { Routine, VisitType } from '@/lib/types';
 
 const tabs = ['Rutina', 'Historial', 'Progreso'] as const;
@@ -44,8 +45,20 @@ export default function PatientDetailPage({
         currentPro,
         progressEntries,
         fetchProgressEntries,
-        addProfessionalFeedback
+        addProfessionalFeedback,
+        setSessionUser,
+        patients,
+        routines: allRoutines,
+        clinicalNotes: allNotes
     } = useDermoCareStore();
+
+    const { profile } = useAuth(); // Added
+
+    useEffect(() => {
+        if (profile) {
+            setSessionUser(profile as any);
+        }
+    }, [profile, setSessionUser]);
 
     // Set Global FAB Action - Context Aware!
     useEffect(() => {

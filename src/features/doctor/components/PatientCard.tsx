@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import type { PatientSummary } from '@/lib/types';
 import { AdherenceBar } from './AdherenceBar';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 interface PatientCardProps {
     summary: PatientSummary;
@@ -11,6 +12,7 @@ interface PatientCardProps {
 
 export function PatientCard({ summary }: PatientCardProps) {
     const { patient, adherencePercentage, treatmentType, dayNumber, riskLevel } = summary;
+    const { profile } = useAuth();
 
     return (
         <Link
@@ -37,9 +39,17 @@ export function PatientCard({ summary }: PatientCardProps) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
-                    {patient.name}
-                </h4>
+                <div className="flex items-center gap-2 pr-2">
+                    <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors truncate">
+                        {patient.name}
+                    </h4>
+                    {patient.invitedBy === profile?.id && (
+                        <span className="flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 bg-green-50 text-green-600 rounded-md text-[8px] font-black border border-green-100 uppercase">
+                            <span className="material-symbols-outlined text-[8px]">how_to_reg</span>
+                            Mío
+                        </span>
+                    )}
+                </div>
                 <p className="text-xs text-secondary truncate">
                     {treatmentType} • Día {dayNumber}
                 </p>

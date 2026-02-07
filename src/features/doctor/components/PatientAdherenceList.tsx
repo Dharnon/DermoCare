@@ -1,24 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDermoCareStore } from '@/lib/store';
+import { useAuth } from '@/context/AuthContext';
 import { PatientCard } from './PatientCard';
 
 export function PatientAdherenceList() {
     const [hasMounted, setHasMounted] = useState(false);
-    const { getPatientSummaries } = useDermoCareStore();
+    const { getPatientSummaries, patients, routines, adherenceLogs } = useDermoCareStore();
+    const { profile } = useAuth();
 
     // Hydration fix: wait for client mount
     useEffect(() => {
         setHasMounted(true);
     }, []);
 
-    const summaries = hasMounted ? getPatientSummaries() : [];
+    const summaries = useMemo(() => {
+        if (!hasMounted) return [];
+        const all = getPatientSummaries();
+        // Filter by currently logged in professional if available
+        if (profile?.id) {
+            return all.filter(s => s.patient.invitedBy === profile.id);
+        }
+        return all;
+    }, [hasMounted, getPatientSummaries, patients, routines, adherenceLogs, profile?.id]);
 
     // Sort by adherence (lowest first to highlight at-risk patients)
-    const sortedSummaries = [...summaries].sort(
-        (a, b) => a.adherencePercentage - b.adherencePercentage
-    );
+    const sortedSummaries = useMemo(() => {
+        return [...summaries].sort(
+            (a, b) => a.adherencePercentage - b.adherencePercentage
+        );
+    }, [summaries]);
 
     return (
         <section>

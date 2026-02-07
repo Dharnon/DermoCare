@@ -19,6 +19,8 @@ export interface User {
     contactInfo: ContactInfo;
     bio?: string;
     specialization?: string;
+    organization_id?: string;
+    invitedBy?: string;
 }
 
 export interface Product {

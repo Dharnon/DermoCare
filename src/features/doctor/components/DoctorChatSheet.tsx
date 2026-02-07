@@ -19,8 +19,18 @@ export function DoctorChatSheet({ patient, isOpen, onClose }: DoctorChatSheetPro
         chatMessages,
         sendMessage,
         markMessagesAsRead,
-        fetchChatMessages
+        fetchChatMessages,
+        subscribeToChat,
+        unsubscribeFromChat
     } = useDermoCareStore();
+
+    // Subscribe to realtime messages
+    useEffect(() => {
+        if (currentPro) {
+            subscribeToChat(currentPro.id);
+        }
+        return () => unsubscribeFromChat();
+    }, [currentPro, subscribeToChat, unsubscribeFromChat]);
 
     const conversationMessages = useMemo(() => {
         if (!currentPro || !patient) return [];

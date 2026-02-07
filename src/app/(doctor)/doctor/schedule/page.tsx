@@ -41,14 +41,23 @@ export default function SchedulePage() {
         updateAppointmentStatus,
         cancelAppointment,
         fetchDoctorData,
+        setSessionUser,
+        subscribeToDoctorEvents,
+        unsubscribeFromAll,
+        appointments: allAppointments // Subscribe to changes
     } = useDermoCareStore();
 
     useEffect(() => {
+        if (profile) {
+            setSessionUser(profile as any);
+        }
         const proId = profile?.id || currentPro?.id;
         if (proId) {
             fetchDoctorData(proId);
+            subscribeToDoctorEvents(proId);
         }
-    }, [profile, currentPro?.id, fetchDoctorData]);
+        return () => unsubscribeFromAll();
+    }, [profile, currentPro?.id, fetchDoctorData, setSessionUser, subscribeToDoctorEvents, unsubscribeFromAll]);
 
     // Generate week days starting from today
     const days = useMemo(() => {
@@ -72,7 +81,7 @@ export default function SchedulePage() {
             });
         }
         return result;
-    }, [hasMounted, currentPro, getDoctorAppointments]);
+    }, [hasMounted, currentPro, getDoctorAppointments, allAppointments]);
 
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -97,7 +106,7 @@ export default function SchedulePage() {
         return getDoctorAppointments(currentPro.id, selectedDate)
             .filter(apt => apt.status !== 'cancelled')
             .sort((a, b) => a.time.localeCompare(b.time));
-    }, [hasMounted, currentPro, selectedDate, getDoctorAppointments]);
+    }, [hasMounted, currentPro, selectedDate, getDoctorAppointments, allAppointments]);
 
     // Get current date display
     const selectedDateDisplay = useMemo(() => {

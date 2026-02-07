@@ -15,6 +15,7 @@ export default function AuthPage() {
     const [orgName, setOrgName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [invitedBy, setInvitedBy] = useState<string | null>(null);
     const router = useRouter();
 
     // Check for invite token on mount
@@ -39,6 +40,9 @@ export default function AuthPage() {
             if (error) throw error;
             if (data && data.organization) {
                 setSelectedOrg(data.organization);
+            }
+            if (data && data.invited_by) {
+                setInvitedBy(data.invited_by);
             }
         } catch (err) {
             console.error('Invite token invalid:', err);
@@ -88,7 +92,8 @@ export default function AuthPage() {
                         data: {
                             name,
                             role,
-                            organization_id: role === 'patient' ? selectedOrg?.id : null
+                            organization_id: role === 'patient' ? selectedOrg?.id : null,
+                            invited_by: invitedBy
                         }
                     }
                 });
@@ -99,11 +104,7 @@ export default function AuthPage() {
                     await organizationService.createOrganization(orgName, data.user.id);
                 }
 
-                if (data.user && role === 'patient' && selectedOrg) {
-                    // Update profile with org_id (trigger should handle it but metadata is safer)
-                    await supabase.from('profiles').update({ organization_id: selectedOrg.id }).eq('id', data.user.id);
-                }
-
+                // Assignment and Organization are now handled by handle_new_user trigger via metadata
                 setMessage('¡Registrado! Revisa tu email para confirmar tu cuenta.');
             }
         } catch (err: any) {

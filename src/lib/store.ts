@@ -219,6 +219,7 @@ interface DermoCareState {
     clinicalNotes: ClinicalNote[];
     appointments: Appointment[];
     patients: User[];
+    professionals: User[];
 
     // Actions - Patient
     toggleProductCheck: (
@@ -240,6 +241,8 @@ interface DermoCareState {
     addPatient: (patient: Omit<User, 'id' | 'role'>) => User;
     updatePatient: (id: string, updates: Partial<User>) => void;
     deletePatient: (id: string) => void;
+    claimPatient: (patientId: string, proId?: string) => Promise<void>;
+    fetchProfessionals: (orgId: string) => Promise<void>;
 
     // Actions - Pro: Routine Assignment
     assignRoutineToPatient: (
@@ -305,6 +308,8 @@ interface DermoCareState {
     // Actions - Realtime Chat
     subscribeToChat: (userId: string) => void;
     unsubscribeFromChat: () => void;
+    subscribeToDoctorEvents: (proId: string) => void;
+    unsubscribeFromAll: () => void;
 }
 
 // ============================================
@@ -361,6 +366,7 @@ export const useDermoCareStore = create<DermoCareState>()(
             currentPro: null,
             products: MOCK_PRODUCTS, // Keeping products as base catalog
             patients: [],
+            professionals: [],
             clinicalNotes: [],
             appointments: [],
             chatMessages: [],
@@ -772,6 +778,72 @@ export const useDermoCareStore = create<DermoCareState>()(
                 }));
             },
 
+            claimPatient: async (patientId, proId) => {
+                const currentUser = get().currentUser as any;
+                const clinicianId = proId || currentUser?.id;
+
+                let orgId = currentUser?.organization_id;
+
+                if (!orgId && clinicianId) {
+                    const { data: proProfile } = await supabase
+                        .from('profiles')
+                        .select('organization_id')
+                        .eq('id', clinicianId)
+                        .single();
+                    orgId = proProfile?.organization_id;
+                }
+
+                if (!orgId) {
+                    console.error('Cannot claim patient: No organization ID found for clinician', clinicianId);
+                    return;
+                }
+
+                // Optimistic Update
+                set((state) => ({
+                    patients: state.patients.map((p) =>
+                        p.id === patientId ? { ...p, organization_id: orgId, invitedBy: clinicianId } : p
+                    ),
+                }));
+
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({
+                        organization_id: orgId,
+                        invited_by: clinicianId
+                    })
+                    .eq('id', patientId);
+
+                if (error) {
+                    console.error('Error claiming patient:', error);
+                    // Revert optimistic update if necessary (optional for demo)
+                } else {
+                    // Force refresh data if needed, but optimistic update already handled the UI
+                    if (currentUser?.id) get().fetchDoctorData(currentUser.id);
+                }
+            },
+
+            fetchProfessionals: async (orgId: string) => {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('organization_id', orgId)
+                    .eq('role', 'pro');
+
+                if (!error && data) {
+                    set({
+                        professionals: data.map((p: any) => ({
+                            id: p.id,
+                            name: p.name,
+                            role: p.role,
+                            avatarUrl: p.avatar_url,
+                            contactInfo: { email: p.email },
+                            organization_id: p.organization_id,
+                            specialization: p.specialization
+                        })) as User[]
+                    });
+                }
+            },
+
             // Routine Assignment Actions
             assignRoutineToPatient: (patientId, productIds, scheduleType) => {
                 const { products, currentPro } = get();
@@ -850,16 +922,24 @@ export const useDermoCareStore = create<DermoCareState>()(
             // Pro: Data Access
             getPatientSummaries: () => {
                 const { patients, routines, adherenceLogs } = get();
-                const treatmentTypes = ['Tratamiento Acné', 'Cuidado Eczema', 'Anti-Aging'];
 
                 return patients
                     .filter((p) => p.role === 'patient')
-                    .map((patient, index) => {
+                    .map((patient) => {
                         const patientRoutines = routines.filter((r) => r.patientId === patient.id);
                         const currentRoutine = patientRoutines[0];
                         const adherence = currentRoutine
                             ? calculateWeeklyAdherence(adherenceLogs, currentRoutine)
                             : 0;
+
+                        // Calculate day number since routine start
+                        let dayNumber = 0;
+                        if (currentRoutine && currentRoutine.createdAt) {
+                            const start = new Date(currentRoutine.createdAt);
+                            const today = new Date();
+                            const diff = today.getTime() - start.getTime();
+                            dayNumber = Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)) + 1);
+                        }
 
                         return {
                             patient,
@@ -867,8 +947,8 @@ export const useDermoCareStore = create<DermoCareState>()(
                             currentRoutine,
                             lastCheck: new Date(),
                             riskLevel: getAdherenceRiskLevel(adherence),
-                            treatmentType: treatmentTypes[index % treatmentTypes.length],
-                            dayNumber: Math.floor(Math.random() * 30) + 1,
+                            treatmentType: currentRoutine ? 'Rutina Activa' : 'Sin rutina',
+                            dayNumber: dayNumber,
                         };
                     });
             },
@@ -892,6 +972,23 @@ export const useDermoCareStore = create<DermoCareState>()(
 
             // Appointment Actions (Supabase connected)
             addAppointment: async (appointmentData) => {
+                const tempId = `apt-temp-${Date.now()}`;
+                const newAppointment: Appointment = {
+                    id: tempId,
+                    patientId: appointmentData.patientId,
+                    proId: appointmentData.proId,
+                    date: appointmentData.date,
+                    time: appointmentData.time,
+                    status: appointmentData.status,
+                    visitType: appointmentData.visitType,
+                    reason: appointmentData.reason,
+                    notes: '',
+                    createdAt: new Date()
+                };
+
+                // Optimistic Update
+                set((state) => ({ appointments: [...state.appointments, newAppointment] }));
+
                 const { data, error } = await supabase
                     .from('appointments')
                     .insert({
@@ -901,26 +998,26 @@ export const useDermoCareStore = create<DermoCareState>()(
                         time: appointmentData.time,
                         status: appointmentData.status,
                         visit_type: appointmentData.visitType,
-                        reason: appointmentData.reason
+                        reason: appointmentData.reason,
+                        organization_id: (get().currentUser as any)?.organization_id
                     })
                     .select()
                     .single();
 
                 if (!error && data) {
-                    const newAppointment: Appointment = {
-                        id: data.id,
-                        patientId: data.patient_id,
-                        proId: data.pro_id,
-                        date: data.date,
-                        time: data.time,
-                        status: data.status,
-                        visitType: data.visit_type,
-                        reason: data.reason,
-                        notes: data.notes || '',
-                        createdAt: new Date(data.created_at)
-                    };
-                    set((state) => ({ appointments: [...state.appointments, newAppointment] }));
-                    return newAppointment;
+                    // Update with real ID
+                    set((state) => ({
+                        appointments: state.appointments.map(a =>
+                            a.id === tempId ? { ...a, id: data.id, createdAt: new Date(data.created_at) } : a
+                        )
+                    }));
+                    return { ...newAppointment, id: data.id };
+                } else if (error) {
+                    console.error('Error adding appointment:', error);
+                    // Revert if error
+                    set((state) => ({
+                        appointments: state.appointments.filter(a => a.id !== tempId)
+                    }));
                 }
                 return null;
             },
@@ -1082,21 +1179,49 @@ export const useDermoCareStore = create<DermoCareState>()(
 
             fetchDoctorData: async (proId: string) => {
                 try {
-                    // 1. Fetch Patients (those associated with this pro/org)
-                    // For now, fetch all of the same organization
-                    const { profile } = get() as any; // Need to check how we get pro's org
+                    let patientsData: any[] = [];
 
-                    const { data: patientsData, error: patientsError } = await supabase
+                    // Always fetch the pro's profile first to ensure we have the correct orgId
+                    const { data: proProfile } = await supabase
+                        .from('profiles')
+                        .select('organization_id')
+                        .eq('id', proId)
+                        .single();
+
+                    const orgId = proProfile?.organization_id;
+
+                    if (orgId) {
+                        const { data: assigned, error: assignedError } = await supabase
+                            .from('profiles')
+                            .select('*')
+                            .eq('role', 'patient')
+                            .eq('organization_id', orgId);
+
+                        if (assignedError) console.error('Error fetching assigned patients:', assignedError);
+                        if (assigned) patientsData = [...assigned];
+                    }
+
+                    const { data: unassigned, error: unassignedError } = await supabase
                         .from('profiles')
                         .select('*')
-                        .eq('role', 'patient'); // Later improve with org_id filter if possible
+                        .eq('role', 'patient')
+                        .is('organization_id', null);
 
-                    if (patientsError) throw patientsError;
+                    if (unassignedError) console.error('Error fetching unassigned patients:', unassignedError);
+
+                    if (unassigned) {
+                        // Avoid duplicates if any
+                        const assignedIds = new Set(patientsData.map(p => p.id));
+                        const uniqueUnassigned = unassigned.filter(p => !assignedIds.has(p.id));
+                        patientsData = [...patientsData, ...uniqueUnassigned];
+                    }
 
                     // 3. Fetch Products for this organization
-                    const { data: productsData, error: prodError } = await supabase
-                        .from('products')
-                        .select('*'); // If organization_id is set up correctly in RLS or filter
+                    let productsQuery = supabase.from('products').select('*');
+                    if (orgId) {
+                        productsQuery = productsQuery.eq('organization_id', orgId);
+                    }
+                    const { data: productsData, error: prodError } = await productsQuery;
 
                     if (prodError) throw prodError;
 
@@ -1117,7 +1242,9 @@ export const useDermoCareStore = create<DermoCareState>()(
                         name: p.name,
                         role: p.role,
                         avatarUrl: p.avatar_url,
-                        contactInfo: { email: p.email }
+                        contactInfo: { email: p.email },
+                        organization_id: p.organization_id,
+                        invitedBy: p.invited_by
                     }));
 
                     // Fetch Appointments for this doctor
@@ -1255,16 +1382,24 @@ export const useDermoCareStore = create<DermoCareState>()(
                         }))
                     });
                 } else {
-                    // FALLBACK FOR DEMO: If DB fails or returns empty, load mock data for current patient
-                    // This ensures the "notes" feature is visible during review
-                    const patientMockEntries = MOCK_PROGRESS_ENTRIES.filter(e => e.patientId === patientId);
-                    if (patientMockEntries.length > 0) {
-                        set({ progressEntries: patientMockEntries });
-                    }
+                    // Start with empty if no data and no fallback needed
+                    set({ progressEntries: [] });
                 }
             },
 
             addProgressEntry: async (entry) => {
+                const tempId = `prog-temp-${Date.now()}`;
+                const newEntry: ProgressEntry = {
+                    id: tempId,
+                    patientId: entry.patientId,
+                    photoUrl: entry.photoUrl,
+                    notes: entry.notes,
+                    createdAt: new Date().toISOString()
+                };
+
+                // Optimistic Update
+                set(state => ({ progressEntries: [newEntry, ...state.progressEntries] }));
+
                 const { data, error } = await supabase
                     .from('progress_entries')
                     .insert({
@@ -1276,24 +1411,18 @@ export const useDermoCareStore = create<DermoCareState>()(
                     .single();
 
                 if (!error && data) {
-                    const newEntry: ProgressEntry = {
-                        id: data.id,
-                        patientId: data.patient_id,
-                        photoUrl: data.photo_url,
-                        notes: data.notes,
-                        createdAt: data.created_at
-                    };
-                    set(state => ({ progressEntries: [newEntry, ...state.progressEntries] }));
-                } else {
-                    // Fallback for demo
-                    const newEntry: ProgressEntry = {
-                        id: `prog-${Date.now()}`,
-                        patientId: entry.patientId,
-                        photoUrl: entry.photoUrl,
-                        notes: entry.notes,
-                        createdAt: new Date().toISOString()
-                    };
-                    set(state => ({ progressEntries: [newEntry, ...state.progressEntries] }));
+                    // Update with real ID
+                    set(state => ({
+                        progressEntries: state.progressEntries.map(e =>
+                            e.id === tempId ? { ...e, id: data.id, createdAt: data.created_at } : e
+                        )
+                    }));
+                } else if (error) {
+                    console.error('Error adding progress entry:', error);
+                    // Revert if error
+                    set(state => ({
+                        progressEntries: state.progressEntries.filter(e => e.id !== tempId)
+                    }));
                 }
             },
 
@@ -1316,24 +1445,21 @@ export const useDermoCareStore = create<DermoCareState>()(
             },
 
             addProfessionalFeedback: async (entryId, feedback) => {
+                // Optimistic Update
+                set(state => ({
+                    progressEntries: state.progressEntries.map(e =>
+                        e.id === entryId ? { ...e, professionalFeedback: feedback } : e
+                    )
+                }));
+
                 const { error } = await supabase
                     .from('progress_entries')
                     .update({ professional_feedback: feedback })
                     .eq('id', entryId);
 
-                if (!error) {
-                    set(state => ({
-                        progressEntries: state.progressEntries.map(e =>
-                            e.id === entryId ? { ...e, professionalFeedback: feedback } : e
-                        )
-                    }));
-                } else {
-                    // Fallback for demo
-                    set(state => ({
-                        progressEntries: state.progressEntries.map(e =>
-                            e.id === entryId ? { ...e, professionalFeedback: feedback } : e
-                        )
-                    }));
+                if (error) {
+                    console.error('Error adding professional feedback:', error);
+                    // Optionally revert here, but for demo let's keep it simple
                 }
             },
 
@@ -1347,11 +1473,10 @@ export const useDermoCareStore = create<DermoCareState>()(
                             event: 'INSERT',
                             schema: 'public',
                             table: 'chat_messages',
-                            filter: `receiver_id=eq.${userId}` // Only listen for messages sent TO me (or generic filter)
+                            filter: `receiver_id=eq.${userId}`
                         },
                         (payload: any) => {
                             const newMsg = payload.new as any;
-                            // Check if message already exists to avoid dupes from optimistic UI (if implemented later)
                             const exists = get().chatMessages.some(m => m.id === newMsg.id);
                             if (!exists) {
                                 const msg: ChatMessage = {
@@ -1363,17 +1488,47 @@ export const useDermoCareStore = create<DermoCareState>()(
                                     isRead: newMsg.is_read,
                                     type: newMsg.type
                                 };
-                                set(state => ({ chatMessages: [...state.chatMessages, msg] })); // Append to end
+                                set(state => ({ chatMessages: [...state.chatMessages, msg] }));
                             }
                         }
                     )
                     .subscribe();
+            },
 
-                // Also could fetch initial history here if not fetched elsewhere, but usually fetchPatientData handles it?
-                // Actually fetchPatientData didn't fetch chat messages. Let's add a fetch here or rely on specific chat page load.
+            subscribeToDoctorEvents: (proId) => {
+                // Listen for changes in tables that affect the doctor's view
+                const channel = supabase
+                    .channel(`doctor_events:${proId}`)
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'appointments' },
+                        () => get().fetchDoctorData(proId)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'progress_entries' },
+                        () => get().fetchDoctorData(proId)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'profiles' },
+                        () => get().fetchDoctorData(proId)
+                    )
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'adherence_logs' },
+                        () => get().fetchDoctorData(proId)
+                    )
+                    .subscribe();
+
+                return channel;
             },
 
             unsubscribeFromChat: () => {
+                supabase.removeAllChannels();
+            },
+
+            unsubscribeFromAll: () => {
                 supabase.removeAllChannels();
             }
         }),

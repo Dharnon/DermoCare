@@ -35,7 +35,8 @@ export function InvitePatientSheet({ isOpen, onClose }: InvitePatientSheetProps)
 
         try {
             const { data, error } = await supabase.rpc('create_patient_invite', {
-                p_org_id: profile.organization_id
+                p_org_id: profile.organization_id,
+                p_invited_by: profile.id
             });
 
             if (error) {

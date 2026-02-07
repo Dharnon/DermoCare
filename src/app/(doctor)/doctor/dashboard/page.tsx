@@ -12,17 +12,30 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default function DoctorDashboardPage() {
-    const { currentPro, patients, fetchDoctorData, appointments } = useDermoCareStore();
+    const {
+        currentPro,
+        patients,
+        fetchDoctorData,
+        appointments,
+        setSessionUser,
+        subscribeToDoctorEvents,
+        unsubscribeFromAll
+    } = useDermoCareStore();
     const { profile } = useAuth(); // Added
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const { setFab, hideFab } = useUIStore();
 
     useEffect(() => {
+        if (profile) {
+            setSessionUser(profile as any);
+        }
         const proId = profile?.id || currentPro?.id;
         if (proId) {
             fetchDoctorData(proId);
+            subscribeToDoctorEvents(proId);
         }
-    }, [profile, currentPro?.id, fetchDoctorData]);
+        return () => unsubscribeFromAll();
+    }, [profile, currentPro?.id, fetchDoctorData, setSessionUser, subscribeToDoctorEvents, unsubscribeFromAll]);
 
     useEffect(() => {
         setFab(() => setIsInviteOpen(true), 'person_add');
