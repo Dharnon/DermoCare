@@ -10,7 +10,6 @@ import type { Product } from "@/lib/types";
 
 export default function TreatmentsPage() {
     const {
-        currentPatient,
         currentPro,
         getPatientRoutine,
         adherenceLogs,
@@ -21,7 +20,7 @@ export default function TreatmentsPage() {
     const amRoutine = getPatientRoutine('am');
     const pmRoutine = getPatientRoutine('pm');
 
-    // Calculate adherence for active treatment
+    // Calculate weekly adherence
     const weeklyAdherence = useMemo(() => {
         if (!amRoutine) return 0;
         return calculateWeeklyAdherence(adherenceLogs, amRoutine);

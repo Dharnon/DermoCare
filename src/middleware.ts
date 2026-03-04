@@ -6,15 +6,23 @@ export async function middleware(request: NextRequest) {
         request,
     });
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('Missing Supabase env vars in middleware');
+        return NextResponse.redirect(new URL('/auth?error=missing_env', request.url));
+    }
+
     const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+        supabaseUrl,
+        supabaseAnonKey,
         {
             cookies: {
                 getAll() {
                     return request.cookies.getAll();
                 },
-                setAll(cookiesToSet: { name: string, value: string, options?: any }[]) {
+                setAll(cookiesToSet: { name: string, value: string, options?: Partial<import('next/dist/compiled/@edge-runtime/cookies').ResponseCookie> }[]) {
                     cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     );
@@ -34,12 +42,8 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Debug logging
-    const { pathname } = request.nextUrl;
-    console.log(`Middleware: ${request.method} ${pathname}`);
-
     // Public routes that don't require authentication
-    // Restored '/' for debugging
+    const { pathname } = request.nextUrl;
     const publicRoutes = ['/', '/auth', '/auth/callback', '/auth/confirm'];
     const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
 

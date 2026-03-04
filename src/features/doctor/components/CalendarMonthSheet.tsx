@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useDermoCareStore } from '@/lib/store';
 import { formatDate } from '@/lib/adherence';
@@ -18,7 +18,7 @@ export function CalendarMonthSheet({ isOpen, onClose, currentDate, onDateSelect 
     const { currentPro, getDoctorAppointments } = useDermoCareStore();
 
     // Reset view date when opened
-    useMemo(() => {
+    useEffect(() => {
         if (isOpen) {
             setViewDate(new Date(currentDate || new Date()));
         }

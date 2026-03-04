@@ -105,7 +105,10 @@ export function ChatInterface({
                         className="flex items-center gap-3 cursor-pointer active:opacity-80 transition-opacity"
                         onClick={() => setShowDetails(true)}
                     >
-                        <button className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-600 hover:bg-neutral-100 transition-colors">
+                        <button 
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-600 hover:bg-neutral-100 transition-colors"
+                            aria-label="Volver"
+                        >
                             <span className="material-symbols-outlined text-xl">arrow_back_ios_new</span>
                         </button>
                         <div>
@@ -118,7 +121,10 @@ export function ChatInterface({
                             </div>
                         </div>
                     </div>
-                    <button className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-100 transition-colors">
+                    <button 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-500 hover:bg-neutral-100 transition-colors"
+                        aria-label="Más opciones"
+                    >
                         <span className="material-symbols-outlined">more_horiz</span>
                     </button>
                 </div>

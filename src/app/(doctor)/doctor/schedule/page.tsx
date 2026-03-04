@@ -26,9 +26,10 @@ const visitTypeLabels: Record<string, string> = {
 
 export default function SchedulePage() {
     const [hasMounted, setHasMounted] = useState(false);
-    const { setFab, hideFab } = useUIStore(); // Added
+    const { setFab, hideFab } = useUIStore();
 
-    // Hydration fix
+    // Hydration fix - eslint-disable for SSR pattern
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setHasMounted(true);
     }, []);
@@ -84,21 +85,31 @@ export default function SchedulePage() {
     }, [hasMounted, currentPro, getDoctorAppointments, allAppointments]);
 
     const [selectedDate, setSelectedDate] = useState<string>('');
+    
+    // Initialize selectedDate once days are available - use useMemo instead of useEffect
+    const initializedDate = useMemo(() => {
+        if (!selectedDate && days.length > 0) {
+            return days[0].date;
+        }
+        return selectedDate;
+    }, [days, selectedDate]);
+
+    // Update state if we initialized from days
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => {
+        if (!selectedDate && days.length > 0) {
+            setSelectedDate(days[0].date);
+        }
+    }, [days]);
+
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-    const [isAddAppointmentOpen, setIsAddAppointmentOpen] = useState(false); // Added
+    const [isAddAppointmentOpen, setIsAddAppointmentOpen] = useState(false);
 
     // Set Global FAB Action
     useEffect(() => {
         setFab(() => setIsAddAppointmentOpen(true), 'event_available');
         return () => hideFab();
     }, [setFab, hideFab]);
-
-    // Initialize selectedDate once days are available
-    useEffect(() => {
-        if (days.length > 0 && !selectedDate) {
-            setSelectedDate(days[0].date);
-        }
-    }, [days, selectedDate]);
 
     // Get appointments for selected day
     const appointments = useMemo(() => {

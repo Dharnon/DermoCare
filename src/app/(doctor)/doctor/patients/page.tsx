@@ -24,8 +24,6 @@ export default function PatientsPage() {
     const {
         getPatientSummaries,
         patients: allPatients,
-        routines,
-        adherenceLogs,
         claimPatient,
         fetchDoctorData,
         currentPro,
@@ -84,10 +82,6 @@ export default function PatientsPage() {
     const filteredPending = pendingPatients.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    const handlePatientAdded = (patientId: string) => {
-        router.push(`/doctor/patients/${patientId}`);
-    };
 
     return (
         <div className="min-h-screen bg-[#FDFCFB]">

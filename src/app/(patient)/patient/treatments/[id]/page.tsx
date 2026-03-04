@@ -137,11 +137,11 @@ export default function TreatmentDetailPage() {
                         <section>
                             <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-primary">edit_note</span>
-                                Doctor's Notes
+                                Doctor&apos;s Notes
                             </h3>
                             <div className="bg-white p-5 rounded-[2rem] ios-shadow border border-neutral-50">
                                 <p className="text-sm text-neutral-600 leading-relaxed italic">
-                                    "{treatmentData.doctorNotes}"
+                                    &quot;{treatmentData.doctorNotes}&quot;
                                 </p>
                             </div>
                         </section>

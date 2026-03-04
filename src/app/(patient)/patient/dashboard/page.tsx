@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useDermoCareStore } from '@/lib/store';
 import { calculateDailyAdherence, getTodayString } from '@/lib/adherence';
 import { CircularProgress } from '@/components/ui/CircularProgress';
+import { DashboardSkeleton } from '@/components/ui/skeleton';
 import { RequestAppointmentSheet } from '@/features/patient/components/RequestAppointmentSheet';
 import { NotificationSheet } from '@/features/patient/components/NotificationSheet';
 import { cn } from '@/lib/utils';
@@ -24,9 +26,11 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 
 export default function PatientDashboard() {
     const [hasMounted, setHasMounted] = useState(false);
+    const router = useRouter();
     const { profile } = useAuth();
 
-    // Hydration fix
+    // Hydration fix - eslint-disable for common SSR pattern
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setHasMounted(true);
     }, []);
@@ -38,7 +42,9 @@ export default function PatientDashboard() {
         currentPro,
         getNextPatientAppointment,
         fetchPatientData,
-        setSessionUser
+        setSessionUser,
+        isLoading,
+        error
     } = useDermoCareStore();
 
     // Sync Auth Data & Fetch Real Data
@@ -48,7 +54,7 @@ export default function PatientDashboard() {
                 id: profile.id,
                 name: profile.name || 'Usuario',
                 role: (profile.role as 'patient' | 'pro') || 'patient',
-                avatarUrl: profile.avatar_url,
+                avatarUrl: profile.avatar_url || undefined,
                 contactInfo: { email: profile.email || '' }
             };
             setSessionUser(storeUser);
@@ -100,6 +106,11 @@ export default function PatientDashboard() {
     const totalProducts = amProgress.total + pmProgress.total;
     const overallPercentage = totalProducts > 0 ? Math.round((totalCompleted / totalProducts) * 100) : 0;
 
+    // Show loading skeleton while fetching data
+    if (isLoading && hasMounted) {
+        return <DashboardSkeleton />;
+    }
+
     const handleAppointmentCreated = () => {
         setAppointmentToast(true);
         setTimeout(() => setAppointmentToast(false), 3000);
@@ -107,6 +118,14 @@ export default function PatientDashboard() {
 
     return (
         <div className="min-h-screen relative pb-24 overflow-hidden">
+            {/* Error Banner */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-center gap-2">
+                    <span className="material-symbols-outlined">error</span>
+                    {error}
+                </div>
+            )}
+
             {/* Decorative blurs */}
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10" />
             <div className="absolute top-1/2 -left-20 w-48 h-48 bg-primary/5 rounded-full blur-2xl -z-10" />
@@ -343,16 +362,15 @@ export default function PatientDashboard() {
                         <p className="text-xs text-secondary uppercase font-bold tracking-wider">Tu Especialista</p>
                         <p className="font-bold text-slate-800">{currentPro?.name || 'Sin asignar'}</p>
                     </div>
-                    <button className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <button 
+                        onClick={() => router.push('/patient/chat')}
+                        className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
+                        aria-label="Chat con tu especialista"
+                    >
                         <span className="material-symbols-outlined text-primary">chat</span>
                     </button>
                 </div>
             </section>
-            <RequestAppointmentSheet
-                isOpen={showAppointmentSheet}
-                onClose={() => setShowAppointmentSheet(false)}
-                onAppointmentCreated={handleAppointmentCreated}
-            />
 
             <NotificationSheet
                 isOpen={showNotificationSheet}

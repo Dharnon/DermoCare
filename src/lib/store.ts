@@ -19,9 +19,14 @@ import type {
     AppointmentStatus,
     VisitType,
     RoutineTemplate,
-    ChatMessage, // Added
-    ProgressEntry, // Added
-    ProductReview, // Added
+    ChatMessage,
+    ProgressEntry,
+    ProductReview,
+    RoutineRow,
+    RoutineProductRow,
+    AdherenceLogRow,
+    AppointmentRow,
+    ProductRow,
 } from './types';
 import {
     calculateWeeklyAdherence,
@@ -211,6 +216,10 @@ interface DermoCareState {
     currentPatient: User | null;
     currentPro: User | null;
 
+    // Loading states
+    isLoading: boolean;
+    error: string | null;
+
     // Data
     products: Product[];
     routines: Routine[];
@@ -364,6 +373,8 @@ export const useDermoCareStore = create<DermoCareState>()(
             currentUser: null,
             currentPatient: null,
             currentPro: null,
+            isLoading: false,
+            error: null,
             products: MOCK_PRODUCTS, // Keeping products as base catalog
             patients: [],
             professionals: [],
@@ -401,13 +412,14 @@ export const useDermoCareStore = create<DermoCareState>()(
                 if (!routine || !routine.proId) return;
 
                 // 1. Create Template
+                const user = get().currentUser;
                 const { data: templateData, error: templateError } = await supabase
                     .from('routine_templates')
                     .insert({
                         name,
                         icon,
                         schedule_type: routine.scheduleType,
-                        organization_id: (get().currentUser as any)?.organization_id
+                        organization_id: user?.organization_id || null
                     })
                     .select()
                     .single();
@@ -425,18 +437,19 @@ export const useDermoCareStore = create<DermoCareState>()(
                 await supabase.from('routine_template_products').insert(templateProducts);
 
                 // Refresh templates
-                const currentProId = (get().currentUser as any)?.id;
-                if (currentProId) get().fetchDoctorData(currentProId);
+                const currentUser = get().currentUser;
+                if (currentUser) get().fetchDoctorData(currentUser.id);
             },
 
             addTemplate: async (template) => {
+                const currentUser = get().currentUser;
                 const { data, error } = await supabase
                     .from('routine_templates')
                     .insert({
                         name: template.name,
                         icon: template.icon,
                         schedule_type: template.scheduleType,
-                        organization_id: (get().currentUser as any)?.organization_id
+                        organization_id: currentUser?.organization_id || null
                     })
                     .select()
                     .single();
@@ -452,8 +465,8 @@ export const useDermoCareStore = create<DermoCareState>()(
                         await supabase.from('routine_template_products').insert(tps);
                     }
 
-                    const currentProId = (get().currentUser as any)?.id;
-                    if (currentProId) get().fetchDoctorData(currentProId);
+                    const currentUser = get().currentUser;
+                    if (currentUser) get().fetchDoctorData(currentUser.id);
                 }
             },
 
@@ -463,8 +476,8 @@ export const useDermoCareStore = create<DermoCareState>()(
                     .update(updates)
                     .eq('id', templateId);
 
-                const currentProId = (get().currentUser as any)?.id;
-                if (currentProId) get().fetchDoctorData(currentProId);
+                const currentUser = get().currentUser;
+                if (currentUser) get().fetchDoctorData(currentUser.id);
             },
 
             deleteTemplate: async (templateId) => {
@@ -541,20 +554,19 @@ export const useDermoCareStore = create<DermoCareState>()(
                         ingredients: productData.ingredients,
                         benefits: productData.benefits,
                         warnings: productData.warnings,
-                        organization_id: (get().currentUser as any)?.organization_id
+                        organization_id: get().currentUser?.organization_id || null
                     })
                     .select()
                     .single();
 
                 if (!error && data) {
-                    const currentProId = (get().currentUser as any)?.id;
-                    if (currentProId) get().fetchDoctorData(currentProId);
+                    const currentUser = get().currentUser;
+                    if (currentUser) get().fetchDoctorData(currentUser.id);
                 }
             },
 
             updateProduct: async (id, updates) => {
-                // Map camelCase to snake_case for Supabase if needed
-                const dbUpdates: any = {};
+                const dbUpdates: Partial<ProductRow> = {};
                 if (updates.name) dbUpdates.name = updates.name;
                 if (updates.description) dbUpdates.description = updates.description;
                 if (updates.category) dbUpdates.category = updates.category;
@@ -574,8 +586,8 @@ export const useDermoCareStore = create<DermoCareState>()(
                     .update(dbUpdates)
                     .eq('id', id);
 
-                const currentProId = (get().currentUser as any)?.id;
-                if (currentProId) get().fetchDoctorData(currentProId);
+                const currentUser = get().currentUser;
+                if (currentUser) get().fetchDoctorData(currentUser.id);
             },
 
             deleteProduct: async (id) => {
@@ -584,8 +596,8 @@ export const useDermoCareStore = create<DermoCareState>()(
                     .delete()
                     .eq('id', id);
 
-                const currentProId = (get().currentUser as any)?.id;
-                if (currentProId) get().fetchDoctorData(currentProId);
+                const currentUser = get().currentUser;
+                if (currentUser) get().fetchDoctorData(currentUser.id);
             },
 
             updateProductInstructions: (routineId, productId, instructions) => {
@@ -670,7 +682,7 @@ export const useDermoCareStore = create<DermoCareState>()(
                 const { data, error } = await supabase
                     .from('chat_messages')
                     .select('*')
-                    .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
+                    .or(`(sender_id.eq.${userId1},receiver_id.eq.${userId2}).or(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
                     .order('timestamp', { ascending: true });
 
                 if (!error && data) {
@@ -760,12 +772,31 @@ export const useDermoCareStore = create<DermoCareState>()(
                 return newPatient;
             },
 
-            updatePatient: (id, updates) => {
+            updatePatient: async (id, updates) => {
+                // Update local state first for optimistic UI
                 set((state) => ({
                     patients: state.patients.map((p) =>
                         p.id === id ? { ...p, ...updates } : p
                     ),
                 }));
+
+                // Then update database
+                const dbUpdates: Record<string, unknown> = {};
+                if (updates.name) dbUpdates.name = updates.name;
+                if (updates.contactInfo?.email) dbUpdates.email = updates.contactInfo.email;
+                if (updates.avatarUrl) dbUpdates.avatar_url = updates.avatarUrl;
+                if (updates.bio) dbUpdates.bio = updates.bio;
+
+                if (Object.keys(dbUpdates).length > 0) {
+                    const { error } = await supabase
+                        .from('profiles')
+                        .update(dbUpdates)
+                        .eq('id', id);
+
+                    if (error) {
+                        console.error('Error updating patient:', error);
+                    }
+                }
             },
 
             deletePatient: (id) => {
@@ -779,7 +810,7 @@ export const useDermoCareStore = create<DermoCareState>()(
             },
 
             claimPatient: async (patientId, proId) => {
-                const currentUser = get().currentUser as any;
+                const currentUser = get().currentUser;
                 const clinicianId = proId || currentUser?.id;
 
                 let orgId = currentUser?.organization_id;
@@ -999,7 +1030,7 @@ export const useDermoCareStore = create<DermoCareState>()(
                         status: appointmentData.status,
                         visit_type: appointmentData.visitType,
                         reason: appointmentData.reason,
-                        organization_id: (get().currentUser as any)?.organization_id
+                        organization_id: get().currentUser?.organization_id || null
                     })
                     .select()
                     .single();
@@ -1082,6 +1113,7 @@ export const useDermoCareStore = create<DermoCareState>()(
             },
 
             fetchPatientData: async (patientId: string) => {
+                set({ isLoading: true, error: null });
                 try {
                     // 1. Fetch Routines with Products
                     const { data: routinesData, error: routinesError } = await supabase
@@ -1095,7 +1127,16 @@ export const useDermoCareStore = create<DermoCareState>()(
                         `)
                         .eq('patient_id', patientId);
 
-                    if (routinesError) throw routinesError;
+                    if (routinesError) {
+                        console.error('Supabase error fetching routines:', routinesError);
+                        throw new Error(`Error de conexión: ${routinesError.message}`);
+                    }
+
+                    if (!routinesData) {
+                        // No routines found - this is OK, return empty
+                        set({ isLoading: false, routines: [], adherenceLogs: [], appointments: [] });
+                        return;
+                    }
 
                     // Map DB response to Store types
                     const loadedRoutines: Routine[] = routinesData.map((r: any) => ({
@@ -1172,12 +1213,17 @@ export const useDermoCareStore = create<DermoCareState>()(
                         appointments: loadedAppointments
                     });
 
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Error fetching patient data:', error);
+                    const errorMessage = error instanceof Error ? error.message : 'Error al cargar datos del paciente';
+                    set({ error: errorMessage });
+                } finally {
+                    set({ isLoading: false });
                 }
             },
 
             fetchDoctorData: async (proId: string) => {
+                set({ isLoading: true, error: null });
                 try {
                     let patientsData: any[] = [];
 
@@ -1300,8 +1346,12 @@ export const useDermoCareStore = create<DermoCareState>()(
                         appointments: loadedAppointments
                     });
 
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Error fetching doctor data:', error);
+                    const errorMessage = error instanceof Error ? error.message : 'Error al cargar datos del profesional';
+                    set({ error: errorMessage });
+                } finally {
+                    set({ isLoading: false });
                 }
             },
 
@@ -1309,8 +1359,7 @@ export const useDermoCareStore = create<DermoCareState>()(
                 set({
                     currentPatient: user.role === 'patient' ? user : null,
                     currentUser: user,
-                    // If pro, set currentPro?
-                    currentPro: user.role === 'pro' ? user : get().currentPro // Keep mock pro if patient log-in
+                    currentPro: user.role === 'pro' ? user : get().currentPro
                 });
             },
 
@@ -1475,18 +1524,18 @@ export const useDermoCareStore = create<DermoCareState>()(
                             table: 'chat_messages',
                             filter: `receiver_id=eq.${userId}`
                         },
-                        (payload: any) => {
-                            const newMsg = payload.new as any;
+                        (payload: { new: Record<string, unknown> }) => {
+                            const newMsg = payload.new;
                             const exists = get().chatMessages.some(m => m.id === newMsg.id);
                             if (!exists) {
                                 const msg: ChatMessage = {
-                                    id: newMsg.id,
-                                    text: newMsg.text,
-                                    senderId: newMsg.sender_id,
-                                    receiverId: newMsg.receiver_id,
-                                    timestamp: newMsg.timestamp,
-                                    isRead: newMsg.is_read,
-                                    type: newMsg.type
+                                    id: String(newMsg.id),
+                                    text: String(newMsg.text),
+                                    senderId: String(newMsg.sender_id),
+                                    receiverId: String(newMsg.receiver_id),
+                                    timestamp: String(newMsg.timestamp),
+                                    isRead: Boolean(newMsg.is_read),
+                                    type: (String(newMsg.type) as 'text' | 'image' | 'system') || 'text'
                                 };
                                 set(state => ({ chatMessages: [...state.chatMessages, msg] }));
                             }

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import * as React from "react";
 
-interface SearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> { }
+type SearchInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
     ({ className, placeholder = "Search...", ...props }, ref) => {

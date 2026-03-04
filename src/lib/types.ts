@@ -150,3 +150,101 @@ export interface ChatMessage {
     isRead: boolean;
     type: 'text' | 'image' | 'system';
 }
+
+// Database response types (from Supabase)
+export interface ProfileRow {
+    id: string;
+    name: string | null;
+    role: UserRole;
+    email: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    specialization: string | null;
+    organization_id: string | null;
+    invited_by: string | null;
+    is_verified: boolean;
+    created_at: string;
+    updated_at: string;
+    organizations?: {
+        id: string;
+        name: string;
+        slug: string;
+    } | null;
+}
+
+export interface RoutineRow {
+    id: string;
+    patient_id: string;
+    pro_id: string;
+    schedule_type: ScheduleType;
+    created_at: string;
+    updated_at: string;
+    routine_products?: RoutineProductRow[];
+}
+
+export interface RoutineProductRow {
+    id: string;
+    routine_id: string;
+    product_id: string;
+    order: number;
+    instructions: string | null;
+    products?: ProductRow;
+}
+
+export interface ProductRow {
+    id: string;
+    name: string;
+    description: string | null;
+    category: string;
+    frequency: string | null;
+    application_method: string | null;
+    image_url: string | null;
+    icon_name: string | null;
+    icon_bg_color: string | null;
+    price: string | null;
+    brand: string | null;
+    purchase_link: string | null;
+    ingredients: string | null;
+    benefits: string[] | null;
+    warnings: string | null;
+    organization_id: string | null;
+    created_at: string;
+}
+
+export interface AdherenceLogRow {
+    id: string;
+    routine_id: string;
+    product_id: string;
+    date: string;
+    schedule_type: ScheduleType;
+    status: AdherenceStatus;
+    timestamp: string;
+}
+
+export interface AppointmentRow {
+    id: string;
+    patient_id: string;
+    pro_id: string;
+    date: string;
+    time: string;
+    status: AppointmentStatus;
+    visit_type: VisitType;
+    reason: string | null;
+    notes: string | null;
+    created_at: string;
+}
+
+export interface OrganizationRow {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+    created_at?: string;
+}
+
+export interface OrganizationSearchResult {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+}

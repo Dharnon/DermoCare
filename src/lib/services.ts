@@ -217,14 +217,26 @@ export const organizationService = {
     },
 
     async searchOrganizations(query: string) {
-        const { data, error } = await supabase
-            .from('organizations')
-            .select('id, name, slug, logo_url')
-            .ilike('name', `%${query}%`)
-            .limit(5);
+        if (!query || query.trim().length < 2) return [];
+        
+        const sanitizedQuery = query.trim().slice(0, 100);
+        
+        try {
+            const { data, error } = await supabase
+                .from('organizations')
+                .select('id, name, slug, logo_url')
+                .ilike('name', `%${sanitizedQuery}%`)
+                .limit(5);
 
-        if (error) throw error;
-        return data;
+            if (error) {
+                console.error('Search org error:', error);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.error('Search org failed:', err);
+            return [];
+        }
     }
 };
 

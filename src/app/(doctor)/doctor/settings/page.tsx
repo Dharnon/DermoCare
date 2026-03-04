@@ -241,7 +241,7 @@ function AvatarSelectionSheet({ isOpen, onClose, currentAvatar, onSelect }: {
     );
 }
 
-function TeamManagement({ organizationId }: { organizationId: string }) {
+function TeamManagement({ organizationId }: { organizationId: string | null }) {
     const [members, setMembers] = useState<any[]>([]);
     const [inviteLink, setInviteLink] = useState('');
     const [isLoading, setIsLoading] = useState(false);

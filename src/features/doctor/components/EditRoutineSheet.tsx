@@ -24,7 +24,8 @@ export function EditRoutineSheet({ routine, isOpen, onClose, onSaved }: EditRout
         routine.products.map(p => p.id)
     );
 
-    // Sync state with routine prop updates
+    // Sync state with routine prop updates - eslint-disable for SSR pattern
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setRoutineProductIds(routine.products.map(p => p.id));
     }, [routine]);

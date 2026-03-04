@@ -10,7 +10,8 @@ export function PatientAdherenceList() {
     const { getPatientSummaries, patients, routines, adherenceLogs } = useDermoCareStore();
     const { profile } = useAuth();
 
-    // Hydration fix: wait for client mount
+    // Hydration fix: wait for client mount - eslint-disable for SSR pattern
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setHasMounted(true);
     }, []);

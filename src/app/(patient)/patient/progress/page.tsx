@@ -6,7 +6,6 @@ import { useDermoCareStore } from '@/lib/store';
 import { calculateWeeklyAdherence, getAdherenceRiskLevel } from '@/lib/adherence';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
-import { formatDate } from '@/lib/adherence';
 
 export default function ProgressPage() {
     const {
@@ -73,7 +72,7 @@ export default function ProgressPage() {
             let photoUrl: string;
 
             try {
-                const { data, error } = await supabase.storage
+                const { error } = await supabase.storage
                     .from('progress-photos')
                     .upload(fileName, file);
 
@@ -357,7 +356,7 @@ export default function ProgressPage() {
                                 ) : (
                                     <div className="flex items-start gap-3 mb-4">
                                         <p className="text-neutral-600 text-sm leading-relaxed font-medium italic flex-1">
-                                            "{entry.notes || 'Progreso registrado hoy.'}"
+                                            &quot;{entry.notes || 'Progreso registrado hoy.'}&quot;
                                         </p>
                                         <button
                                             onClick={() => {

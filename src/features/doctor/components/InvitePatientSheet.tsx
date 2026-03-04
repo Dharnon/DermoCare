@@ -20,18 +20,15 @@ export function InvitePatientSheet({ isOpen, onClose }: InvitePatientSheetProps)
 
     const generateInvite = async () => {
         if (!profile) {
-            console.error('Profile not loaded');
             return;
         }
 
         if (!profile.organization_id) {
-            console.error('User has no organization_id', profile);
             alert('Error: No tienes una organización asignada.');
             return;
         }
 
         setIsLoading(true);
-        console.log('Generating invite for org:', profile.organization_id);
 
         try {
             const { data, error } = await supabase.rpc('create_patient_invite', {
@@ -40,20 +37,16 @@ export function InvitePatientSheet({ isOpen, onClose }: InvitePatientSheetProps)
             });
 
             if (error) {
-                console.error('Supabase RPC Error:', error);
                 throw error;
             }
 
-            console.log('Invite token generated:', data);
-
             // Generate full URL
-            const baseUrl = window.location.origin;
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
             const link = `${baseUrl}/auth?invite=${data}`;
             setInviteLink(link);
             setShowQR(true); // Automatically show QR after generation
         } catch (err: any) {
-            console.error('Error generating invite (Catch):', err);
-            if (err?.message) console.error('Error message:', err.message);
+            // Error is handled - user feedback through alert or state
         } finally {
             setIsLoading(false);
         }

@@ -9,6 +9,7 @@ import { AdherenceBar } from '@/features/doctor/components/AdherenceBar';
 import { RoutineAssignmentSheet } from '@/features/doctor/components/RoutineAssignmentSheet';
 import { EditRoutineSheet } from '@/features/doctor/components/EditRoutineSheet';
 import { DoctorChatSheet } from '@/features/doctor/components/DoctorChatSheet';
+import { EditPatientSheet } from '@/features/doctor/components/EditPatientSheet';
 import { calculateWeeklyAdherence, getAdherenceRiskLevel } from '@/lib/adherence';
 import { useAuth } from '@/context/AuthContext';
 import type { Routine, VisitType } from '@/lib/types';
@@ -25,6 +26,7 @@ export default function PatientDetailPage({
     const [activeTab, setActiveTab] = useState<TabType>('Rutina');
     const [showAssignSheet, setShowAssignSheet] = useState(false);
     const [showChatSheet, setShowChatSheet] = useState(false);
+    const [showEditSheet, setShowEditSheet] = useState(false);
     const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
     const [newNote, setNewNote] = useState('');
     const [consultationType, setConsultationType] = useState<VisitType>('follow-up');
@@ -47,9 +49,6 @@ export default function PatientDetailPage({
         fetchProgressEntries,
         addProfessionalFeedback,
         setSessionUser,
-        patients,
-        routines: allRoutines,
-        clinicalNotes: allNotes
     } = useDermoCareStore();
 
     const { profile } = useAuth(); // Added
@@ -187,9 +186,17 @@ export default function PatientDetailPage({
                     <h2 className="text-2xl font-bold text-neutral-900 mb-1">
                         {patient.name}
                     </h2>
-                    <p className="text-secondary text-sm font-medium mb-4">
-                        {patient.contactInfo?.email}
-                    </p>
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                        <p className="text-secondary text-sm font-medium">
+                            {patient.contactInfo?.email}
+                        </p>
+                        <button 
+                            onClick={() => setShowEditSheet(true)}
+                            className="p-1 rounded-full hover:bg-neutral-100"
+                        >
+                            <span className="material-symbols-outlined text-neutral-400 text-sm">edit</span>
+                        </button>
+                    </div>
 
                     {/* Adherence Badge */}
                     <div className="w-full max-w-xs mb-4">
@@ -632,7 +639,7 @@ export default function PatientDetailPage({
 
                                             {/* Patient Notes */}
                                             <p className="text-sm font-medium text-slate-600 italic mb-4">
-                                                "{entry.notes || 'Sin notas del paciente'}"
+                                                &quot;{entry.notes || 'Sin notas del paciente'}&quot;
                                             </p>
 
                                             {/* Feedback Box */}
@@ -743,6 +750,13 @@ export default function PatientDetailPage({
                 patient={patient}
                 isOpen={showChatSheet}
                 onClose={() => setShowChatSheet(false)}
+            />
+
+            {/* Edit Patient Sheet */}
+            <EditPatientSheet
+                patient={patient}
+                isOpen={showEditSheet}
+                onClose={() => setShowEditSheet(false)}
             />
         </div>
     );

@@ -14,7 +14,8 @@ export default function RoutinePage() {
     const [activeTime, setActiveTime] = useState<ScheduleType>('am');
     const [selectedProduct, setSelectedProduct] = useState<RoutineProduct | null>(null);
 
-    // Hydration fix: wait for client mount
+    // Hydration fix: wait for client mount - eslint-disable for SSR pattern
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setHasMounted(true);
     }, []);

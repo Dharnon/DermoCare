@@ -36,6 +36,7 @@ export function EditTemplateSheet({ template, isOpen, onClose }: EditTemplateShe
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         if (isOpen) {
             if (template) {

@@ -1,13 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
+import type { ProfileRow } from '@/lib/types';
 
 interface AuthContextType {
     session: Session | null;
     user: User | null;
-    profile: any | null;
+    profile: ProfileRow | null;
     isLoading: boolean;
     signOut: () => Promise<void>;
 }
@@ -17,8 +18,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<any | null>(null);
+    const [profile, setProfile] = useState<ProfileRow | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const fetchProfile = useCallback(async (userId: string) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*, organizations(*)')
+            .eq('id', userId)
+            .single();
+
+        if (!error) setProfile(data);
+    }, []);
 
     useEffect(() => {
         // Get initial session
@@ -42,17 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         return () => subscription.unsubscribe();
-    }, []);
-
-    async function fetchProfile(userId: string) {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*, organizations(*)')
-            .eq('id', userId)
-            .single();
-
-        if (!error) setProfile(data);
-    }
+    }, [fetchProfile]);
 
     const signOut = async () => {
         await supabase.auth.signOut();

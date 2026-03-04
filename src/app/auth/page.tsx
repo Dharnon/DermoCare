@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { organizationService } from '@/lib/services';
+import type { OrganizationSearchResult } from '@/lib/types';
 import Link from 'next/link';
 
 export default function AuthPage() {
@@ -52,22 +53,64 @@ export default function AuthPage() {
     // Organization search for patients
     const [selectedOrg, setSelectedOrg] = useState<{ id: string, name: string } | null>(null);
     const [orgSearch, setOrgSearch] = useState('');
-    const [orgResults, setOrgResults] = useState<any[]>([]);
+    const [orgResults, setOrgResults] = useState<OrganizationSearchResult[]>([]);
 
     const handleOrgSearch = async (val: string) => {
         setOrgSearch(val);
         if (val.length > 2) {
-            const results = await organizationService.searchOrganizations(val);
-            setOrgResults(results);
+            try {
+                const results = await organizationService.searchOrganizations(val);
+                setOrgResults(results || []);
+            } catch (err) {
+                console.error('Organization search failed:', err);
+                setOrgResults([]);
+            }
         } else {
             setOrgResults([]);
         }
+    };
+
+    const validatePassword = (pwd: string): string | null => {
+        if (pwd.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+        if (!/[A-Z]/.test(pwd)) return 'La contraseña debe tener al menos una mayúscula';
+        if (!/[a-z]/.test(pwd)) return 'La contraseña debe tener al menos una minúscula';
+        if (!/[0-9]/.test(pwd)) return 'La contraseña debe tener al menos un número';
+        return null;
+    };
+
+    const validateName = (name: string): string | null => {
+        if (name.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres';
+        if (name.trim().length > 100) return 'El nombre es demasiado largo';
+        return null;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setMessage('');
+
+        // Client-side validation
+        if (!isLogin) {
+            const nameError = validateName(name);
+            if (nameError) {
+                setMessage(nameError);
+                setIsLoading(false);
+                return;
+            }
+
+            const pwdError = validatePassword(password);
+            if (pwdError) {
+                setMessage(pwdError);
+                setIsLoading(false);
+                return;
+            }
+
+            if (role === 'pro' && orgName.trim().length < 2) {
+                setMessage('El nombre de la organización debe tener al menos 2 caracteres');
+                setIsLoading(false);
+                return;
+            }
+        }
 
         try {
             if (isLogin) {
@@ -107,8 +150,9 @@ export default function AuthPage() {
                 // Assignment and Organization are now handled by handle_new_user trigger via metadata
                 setMessage('¡Registrado! Revisa tu email para confirmar tu cuenta.');
             }
-        } catch (err: any) {
-            setMessage(err.message);
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Ha ocurrido un error';
+            setMessage(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -140,22 +184,6 @@ export default function AuthPage() {
                             Profesional
                         </button>
                     </div>
-
-                    {/* Env Var Diagnosis */}
-                    {/* @ts-ignore - accessing internal property for debug */}
-                    {supabase['supabaseUrl'] && supabase['supabaseUrl'].includes('placeholder') && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs">
-                            <p className="font-bold mb-1">⚠️ Error de Configuración Vercel</p>
-                            <p>La app no detecta las variables de entorno.</p>
-                            <p className="mt-1 opacity-75">URL actual: {(supabase as any)['supabaseUrl']}</p>
-                            <p className="mt-1 font-bold">SOLUCIÓN:</p>
-                            <ol className="list-decimal ml-4 mt-1 space-y-1">
-                                <li>Ve a Vercel {'>'} Settings {'>'} Environment Variables</li>
-                                <li>Asegúrate de que NEXT_PUBLIC_SUPABASE_URL está bien puesta</li>
-                                <li>Ve a Deployments y haz <strong>Redeploy</strong> (no build cache)</li>
-                            </ol>
-                        </div>
-                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {!isLogin && (
