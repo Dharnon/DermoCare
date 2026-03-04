@@ -26,7 +26,7 @@ function NavItem({
             href={`/doctor/${item.segment}`}
             prefetch={true}
             className={cn(
-                'flex flex-col items-center gap-1 transition-colors duration-200 w-16',
+                'flex flex-col items-center gap-1 transition-colors duration-200',
                 'active:scale-90 active:opacity-70',
                 isActive ? 'text-primary' : 'text-neutral-400 hover:text-neutral-600'
             )}
@@ -39,7 +39,7 @@ function NavItem({
             >
                 {item.icon}
             </span>
-            <span className="text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-center">
                 {item.label}
             </span>
         </Link>
@@ -53,58 +53,68 @@ export function DoctorBottomNav() {
     const { fabAction, fabIcon } = useUIStore();
 
     return (
-        <nav
-            className={cn(
-                'fixed bottom-0 left-0 right-0 z-50',
-                'bg-white/90 backdrop-blur-xl',
-                'border-t border-neutral-100',
-                'px-6 py-4',
-                'safe-area-bottom'
-            )}
-        >
-            <div className="max-w-md mx-auto flex justify-between items-center relative">
-                {/* First two items */}
-                <div className="flex gap-4">
-                    {navItems.slice(0, 2).map((item) => (
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+            <nav
+                className={cn(
+                    'w-full max-w-[380px] pointer-events-auto',
+                    'bg-white/90 backdrop-blur-xl',
+                    'border border-neutral-100/50 rounded-full mb-4 shadow-2xl',
+                    'px-4 py-3',
+                    'mx-auto'
+                )}
+            >
+                <div className="grid grid-cols-5 items-center relative">
+                    {/* First two items */}
+                    <div className="flex justify-center">
                         <MemoizedNavItem
-                            key={item.segment}
-                            item={item}
-                            isActive={segment === item.segment}
+                            item={navItems[0]}
+                            isActive={segment === navItems[0].segment}
                         />
-                    ))}
-                </div>
-
-                {/* Contextual Action Button */}
-                <div className="-mt-10 mx-2">
-                    <button
-                        onClick={() => fabAction?.()}
-                        disabled={!fabAction}
-                        className={cn(
-                            'w-14 h-14 rounded-full',
-                            'flex items-center justify-center',
-                            'shadow-lg shadow-primary/30',
-                            'active:scale-90 transition-all duration-300',
-                            fabAction
-                                ? 'bg-primary text-white translate-y-0 opacity-100'
-                                : 'bg-transparent text-transparent translate-y-4 opacity-0 pointer-events-none'
-                        )}
-                        aria-label="Acción principal"
-                    >
-                        <span className="material-symbols-outlined text-3xl">{fabIcon}</span>
-                    </button>
-                </div>
-
-                {/* Last two items */}
-                <div className="flex gap-4">
-                    {navItems.slice(2).map((item) => (
+                    </div>
+                    <div className="flex justify-center">
                         <MemoizedNavItem
-                            key={item.segment}
-                            item={item}
-                            isActive={segment === item.segment}
+                            item={navItems[1]}
+                            isActive={segment === navItems[1].segment}
                         />
-                    ))}
+                    </div>
+
+                    {/* Contextual Action Button */}
+                    <div className="flex justify-center">
+                        <div className="-mt-12">
+                            <button
+                                onClick={() => fabAction?.()}
+                                disabled={!fabAction}
+                                className={cn(
+                                    'w-14 h-14 rounded-full',
+                                    'flex items-center justify-center',
+                                    'shadow-lg shadow-primary/30',
+                                    'active:scale-90 transition-all duration-300',
+                                    fabAction
+                                        ? 'bg-primary text-white translate-y-0 opacity-100'
+                                        : 'bg-transparent text-transparent translate-y-4 opacity-0 pointer-events-none'
+                                )}
+                                aria-label="Acción principal"
+                            >
+                                <span className="material-symbols-outlined text-3xl">{fabIcon}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Last two items */}
+                    <div className="flex justify-center">
+                        <MemoizedNavItem
+                            item={navItems[2]}
+                            isActive={segment === navItems[2].segment}
+                        />
+                    </div>
+                    <div className="flex justify-center">
+                        <MemoizedNavItem
+                            item={navItems[3]}
+                            isActive={segment === navItems[3].segment}
+                        />
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        </div>
     );
 }

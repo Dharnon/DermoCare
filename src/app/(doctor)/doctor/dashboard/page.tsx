@@ -17,7 +17,6 @@ export default function DoctorDashboardPage() {
         patients,
         fetchDoctorData,
         appointments,
-        setSessionUser,
         subscribeToDoctorEvents,
         unsubscribeFromAll
     } = useDermoCareStore();
@@ -26,16 +25,13 @@ export default function DoctorDashboardPage() {
     const { setFab, hideFab } = useUIStore();
 
     useEffect(() => {
-        if (profile) {
-            setSessionUser(profile as any);
-        }
         const proId = profile?.id || currentPro?.id;
         if (proId) {
             fetchDoctorData(proId);
             subscribeToDoctorEvents(proId);
         }
         return () => unsubscribeFromAll();
-    }, [profile, currentPro?.id, fetchDoctorData, setSessionUser, subscribeToDoctorEvents, unsubscribeFromAll]);
+    }, [profile, currentPro?.id, fetchDoctorData, subscribeToDoctorEvents, unsubscribeFromAll]);
 
     useEffect(() => {
         setFab(() => setIsInviteOpen(true), 'person_add');

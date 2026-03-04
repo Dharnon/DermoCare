@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
 import type { ProfileRow } from '@/lib/types';
+import { useDermoCareStore } from '@/lib/store';
 
 interface AuthContextType {
     session: Session | null;
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<ProfileRow | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const setSessionUser = useDermoCareStore((state) => state.setSessionUser);
 
     const fetchProfile = useCallback(async (userId: string) => {
         const { data, error } = await supabase
@@ -28,8 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .eq('id', userId)
             .single();
 
-        if (!error) setProfile(data);
-    }, []);
+        if (!error && data) {
+            setProfile(data);
+            setSessionUser(data as any);
+        }
+    }, [setSessionUser]);
 
     useEffect(() => {
         // Get initial session
@@ -48,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 await fetchProfile(session.user.id);
             } else {
                 setProfile(null);
+                // Also clear store user if desired, though store might handle it differently
             }
             setIsLoading(false);
         });

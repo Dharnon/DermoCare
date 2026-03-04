@@ -42,7 +42,6 @@ export default function PatientDashboard() {
         currentPro,
         getNextPatientAppointment,
         fetchPatientData,
-        setSessionUser,
         isLoading,
         error
     } = useDermoCareStore();
@@ -57,10 +56,9 @@ export default function PatientDashboard() {
                 avatarUrl: profile.avatar_url || undefined,
                 contactInfo: { email: profile.email || '' }
             };
-            setSessionUser(storeUser);
             fetchPatientData(profile.id);
         }
-    }, [profile, setSessionUser, fetchPatientData]);
+    }, [profile, fetchPatientData]);
 
     const [showAppointmentSheet, setShowAppointmentSheet] = useState(false);
     const [showNotificationSheet, setShowNotificationSheet] = useState(false);
@@ -362,7 +360,7 @@ export default function PatientDashboard() {
                         <p className="text-xs text-secondary uppercase font-bold tracking-wider">Tu Especialista</p>
                         <p className="font-bold text-slate-800">{currentPro?.name || 'Sin asignar'}</p>
                     </div>
-                    <button 
+                    <button
                         onClick={() => router.push('/patient/chat')}
                         className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                         aria-label="Chat con tu especialista"

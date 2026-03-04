@@ -265,7 +265,7 @@ function TeamManagement({ organizationId }: { organizationId: string | null }) {
                 p_org_id: organizationId
             });
             if (error) throw error;
-            const link = `${window.location.origin}/auth?invite=${data}`;
+            const link = `https://dermo-care.vercel.app/auth?invite=${data}`;
             setInviteLink(link);
         } catch (err) {
             console.error(err);

@@ -125,7 +125,7 @@ export default function AuthPage() {
                 }
 
                 // Get base URL for email redirect
-                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+                const baseUrl = 'https://dermo-care.vercel.app';
 
                 const { data, error } = await supabase.auth.signUp({
                     email,

@@ -48,29 +48,29 @@ function NavItem({
 const MemoizedNavItem = memo(NavItem);
 
 export function PatientBottomNav() {
-    // useSelectedLayoutSegment is more efficient than usePathname
-    // It only tracks the current segment, not the full path
     const segment = useSelectedLayoutSegment();
 
     return (
-        <nav
-            className={cn(
-                'fixed bottom-0 left-0 right-0 z-50',
-                'bg-white/90 backdrop-blur-xl',
-                'border-t border-neutral-100',
-                'px-8 py-4',
-                'safe-area-bottom'
-            )}
-        >
-            <div className="max-w-md mx-auto flex justify-between items-center">
-                {navItems.map((item) => (
-                    <MemoizedNavItem
-                        key={item.segment}
-                        item={item}
-                        isActive={segment === item.segment}
-                    />
-                ))}
-            </div>
-        </nav>
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
+            <nav
+                className={cn(
+                    'w-full max-w-md pointer-events-auto',
+                    'bg-white/90 backdrop-blur-xl',
+                    'border-t border-neutral-100',
+                    'px-8 py-4',
+                    'safe-area-bottom'
+                )}
+            >
+                <div className="max-w-md mx-auto flex justify-between items-center">
+                    {navItems.map((item) => (
+                        <MemoizedNavItem
+                            key={item.segment}
+                            item={item}
+                            isActive={segment === item.segment}
+                        />
+                    ))}
+                </div>
+            </nav>
+        </div>
     );
 }

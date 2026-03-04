@@ -48,18 +48,13 @@ export default function PatientDetailPage({
         progressEntries,
         fetchProgressEntries,
         addProfessionalFeedback,
-        setSessionUser,
     } = useDermoCareStore();
 
-    const { profile } = useAuth(); // Added
+    const { profile } = useAuth();
 
-    useEffect(() => {
-        if (profile) {
-            setSessionUser(profile as any);
-        }
-    }, [profile, setSessionUser]);
+    // Sync Auth Data & Fetch Real Data
+    // Note: setSessionUser is now called in AuthContext fetchProfile
 
-    // Set Global FAB Action - Context Aware!
     useEffect(() => {
         if (activeTab === 'Historial') {
             setFab(() => {
@@ -75,7 +70,6 @@ export default function PatientDetailPage({
         return () => hideFab();
     }, [activeTab, setFab, hideFab]);
 
-    // Fetch Progress
     useEffect(() => {
         if (id) {
             fetchProgressEntries(id);
@@ -86,7 +80,6 @@ export default function PatientDetailPage({
     const routines = getRoutinesByPatient(id);
     const notes = getClinicalNotes(id);
 
-    // Calculate adherence
     const amRoutine = routines.find((r) => r.scheduleType === 'am');
     const pmRoutine = routines.find((r) => r.scheduleType === 'pm');
     const adherence = amRoutine
@@ -133,7 +126,6 @@ export default function PatientDetailPage({
         if (!file) return;
 
         setIsUploading(true);
-        // Simulate upload
         setTimeout(() => {
             const fakeUrl = URL.createObjectURL(file);
             setConsultationPhotos(prev => [...prev, fakeUrl]);
@@ -143,7 +135,6 @@ export default function PatientDetailPage({
 
     return (
         <div className="min-h-screen pb-32">
-            {/* Header */}
             <header className="px-6 pt-8 pb-4 flex justify-between items-center">
                 <Link
                     href="/doctor/patients"
@@ -164,10 +155,8 @@ export default function PatientDetailPage({
                 </button>
             </header>
 
-            {/* Profile Section */}
             <section className="px-6 mb-6">
                 <div className="flex flex-col items-center">
-                    {/* Avatar */}
                     <div className="relative mb-4">
                         <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-4 border-white ios-shadow bg-primary/20 flex items-center justify-center">
                             {patient.avatarUrl ? (
@@ -190,7 +179,7 @@ export default function PatientDetailPage({
                         <p className="text-secondary text-sm font-medium">
                             {patient.contactInfo?.email}
                         </p>
-                        <button 
+                        <button
                             onClick={() => setShowEditSheet(true)}
                             className="p-1 rounded-full hover:bg-neutral-100"
                         >
@@ -198,7 +187,6 @@ export default function PatientDetailPage({
                         </button>
                     </div>
 
-                    {/* Adherence Badge */}
                     <div className="w-full max-w-xs mb-4">
                         <AdherenceBar
                             percentage={adherence}
@@ -206,7 +194,6 @@ export default function PatientDetailPage({
                         />
                     </div>
 
-                    {/* Quick Action Buttons */}
                     <div className="flex gap-3 w-full max-w-sm">
                         <button className="flex-1 bg-white py-3 rounded-2xl ios-shadow border border-neutral-50 flex flex-col items-center gap-1">
                             <span className="material-symbols-outlined text-primary">
@@ -239,7 +226,6 @@ export default function PatientDetailPage({
                 </div>
             </section>
 
-            {/* Tabs */}
             <div className="px-6 mb-6">
                 <div className="flex bg-gray-100 p-1 rounded-xl">
                     {tabs.map((tab) => (
@@ -259,12 +245,9 @@ export default function PatientDetailPage({
                 </div>
             </div>
 
-            {/* Tab Content */}
             <div className="px-6">
-                {/* Rutina Tab */}
                 {activeTab === 'Rutina' && (
                     <div className="space-y-6">
-                        {/* Morning Routine */}
                         <section>
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -326,7 +309,6 @@ export default function PatientDetailPage({
                             )}
                         </section>
 
-                        {/* Evening Routine */}
                         <section>
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -390,10 +372,8 @@ export default function PatientDetailPage({
                     </div>
                 )}
 
-                {/* Historial Tab (Clinical History) */}
                 {activeTab === 'Historial' && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {/* Key Patient Data */}
                         <section className="mb-8">
                             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-3 ml-1">Key Patient Data</h3>
                             <div className="grid grid-cols-2 gap-3">
@@ -426,11 +406,9 @@ export default function PatientDetailPage({
                             <span className="text-[10px] font-bold text-primary uppercase">{notes.length} Entries</span>
                         </div>
 
-                        {/* Note Input (Inline) */}
                         <div className="mb-8 bg-white/90 backdrop-blur-md p-5 rounded-[2rem] border border-gray-100 ios-shadow">
                             <h4 className="text-sm font-bold text-slate-800 mb-4">Nueva Entrada de Consulta</h4>
 
-                            {/* Consultation Type Selector */}
                             <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar py-1">
                                 {(['first-visit', 'follow-up', 'routine-check'] as VisitType[]).map((type) => (
                                     <button
@@ -456,7 +434,6 @@ export default function PatientDetailPage({
                                 className="w-full text-sm min-h-[120px] outline-none resize-none bg-slate-50/50 p-4 rounded-2xl mb-4 border border-slate-50 focus:border-primary/20 transition-colors"
                             />
 
-                            {/* Photo Upload Section */}
                             <div className="space-y-3 mb-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fotos de la Consulta</span>
@@ -506,11 +483,9 @@ export default function PatientDetailPage({
                             </div>
                         </div>
 
-                        {/* Timeline */}
                         <div className="space-y-4 relative">
                             {notes.length > 0 ? [...notes].reverse().map((note, index) => (
                                 <div key={note.id} className="flex space-x-4 relative group">
-                                    {/* Timeline Line & Dot */}
                                     <div className="flex flex-col items-center flex-shrink-0 relative">
                                         <div className={cn(
                                             "w-4 h-4 rounded-full border-4 border-white ios-shadow z-10 relative transition-colors",
@@ -557,7 +532,6 @@ export default function PatientDetailPage({
                                                     </p>
                                                 </div>
 
-                                                {/* Consultation Photos taken by the professional */}
                                                 {note.photos && note.photos.length > 0 && (
                                                     <div className="flex gap-3 overflow-x-auto no-scrollbar pt-2 pb-1">
                                                         {note.photos.map((photo, i) => (
@@ -592,7 +566,6 @@ export default function PatientDetailPage({
                     </div>
                 )}
 
-                {/* Progreso Tab (Patient Photos Timeline) */}
                 {activeTab === 'Progreso' && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="flex items-center justify-between mb-6">
@@ -600,14 +573,11 @@ export default function PatientDetailPage({
                             <span className="text-[10px] font-bold text-primary uppercase">{progressEntries.length} Photos</span>
                         </div>
 
-                        {/* Timeline */}
                         <div className="space-y-4 relative">
-                            {/* Vertical Line */}
                             <div className="absolute left-[19px] top-2 bottom-0 w-0.5 bg-slate-100"></div>
 
                             {progressEntries.length > 0 ? [...progressEntries].reverse().map((entry, index) => (
                                 <div key={entry.id} className="flex space-x-4 relative group">
-                                    {/* Dot */}
                                     <div className="flex flex-col items-center flex-shrink-0 relative">
                                         <div className={cn(
                                             "w-4 h-4 rounded-full border-4 border-white ios-shadow z-10 relative transition-colors",
@@ -617,7 +587,6 @@ export default function PatientDetailPage({
 
                                     <div className="flex-1 pb-10">
                                         <div className="bg-white/90 backdrop-blur-md p-5 rounded-[2rem] border border-gray-100 ios-shadow">
-                                            {/* Date */}
                                             <div className="flex justify-between items-center mb-4">
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                                     {new Date(entry.createdAt).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -627,7 +596,6 @@ export default function PatientDetailPage({
                                                 )}
                                             </div>
 
-                                            {/* Photo */}
                                             <div className="aspect-[4/5] w-full rounded-2xl overflow-hidden mb-4 border border-gray-100 relative group">
                                                 <img
                                                     src={entry.photoUrl}
@@ -637,12 +605,10 @@ export default function PatientDetailPage({
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
 
-                                            {/* Patient Notes */}
                                             <p className="text-sm font-medium text-slate-600 italic mb-4">
                                                 &quot;{entry.notes || 'Sin notas del paciente'}&quot;
                                             </p>
 
-                                            {/* Feedback Box */}
                                             {feedbackEntryId === entry.id ? (
                                                 <div className="bg-white rounded-2xl p-4 border-2 border-primary shadow-lg">
                                                     <div className="flex items-center gap-2 mb-3">
@@ -728,7 +694,6 @@ export default function PatientDetailPage({
                 )}
             </div>
 
-            {/* Routine Assignment Sheet */}
             <RoutineAssignmentSheet
                 patientId={patient.id}
                 patientName={patient.name}
@@ -736,7 +701,6 @@ export default function PatientDetailPage({
                 onClose={() => setShowAssignSheet(false)}
             />
 
-            {/* Edit Routine Sheet */}
             {editingRoutine && (
                 <EditRoutineSheet
                     routine={editingRoutine}
@@ -745,14 +709,12 @@ export default function PatientDetailPage({
                 />
             )}
 
-            {/* Chat Sheet */}
             <DoctorChatSheet
                 patient={patient}
                 isOpen={showChatSheet}
                 onClose={() => setShowChatSheet(false)}
             />
 
-            {/* Edit Patient Sheet */}
             <EditPatientSheet
                 patient={patient}
                 isOpen={showEditSheet}

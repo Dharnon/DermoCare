@@ -4,11 +4,11 @@ import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useDermoCareStore } from "@/lib/store";
 import { useAuth } from "@/context/AuthContext";
-import { useUIStore } from "@/lib/ui-store"; // Added
+import { useUIStore } from "@/lib/ui-store";
 import { formatDate } from "@/lib/adherence";
 import type { AppointmentStatus } from "@/lib/types";
 import { CalendarMonthSheet } from "@/features/doctor/components/CalendarMonthSheet";
-import { AddAppointmentSheet } from "@/features/doctor/components/AddAppointmentSheet"; // Added
+import { AddAppointmentSheet } from "@/features/doctor/components/AddAppointmentSheet";
 
 const statusConfig: Record<AppointmentStatus, { color: string; textColor: string; bgColor: string; label: string }> = {
     pending: { color: "bg-amber-400", textColor: "text-amber-600", bgColor: "bg-amber-50", label: "PENDIENTE" },
@@ -28,8 +28,6 @@ export default function SchedulePage() {
     const [hasMounted, setHasMounted] = useState(false);
     const { setFab, hideFab } = useUIStore();
 
-    // Hydration fix - eslint-disable for SSR pattern
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setHasMounted(true);
     }, []);
@@ -42,23 +40,19 @@ export default function SchedulePage() {
         updateAppointmentStatus,
         cancelAppointment,
         fetchDoctorData,
-        setSessionUser,
         subscribeToDoctorEvents,
         unsubscribeFromAll,
-        appointments: allAppointments // Subscribe to changes
+        appointments: allAppointments
     } = useDermoCareStore();
 
     useEffect(() => {
-        if (profile) {
-            setSessionUser(profile as any);
-        }
         const proId = profile?.id || currentPro?.id;
         if (proId) {
             fetchDoctorData(proId);
             subscribeToDoctorEvents(proId);
         }
         return () => unsubscribeFromAll();
-    }, [profile, currentPro?.id, fetchDoctorData, setSessionUser, subscribeToDoctorEvents, unsubscribeFromAll]);
+    }, [profile, currentPro?.id, fetchDoctorData, subscribeToDoctorEvents, unsubscribeFromAll]);
 
     // Generate week days starting from today
     const days = useMemo(() => {
@@ -85,33 +79,21 @@ export default function SchedulePage() {
     }, [hasMounted, currentPro, getDoctorAppointments, allAppointments]);
 
     const [selectedDate, setSelectedDate] = useState<string>('');
-    
-    // Initialize selectedDate once days are available - use useMemo instead of useEffect
-    const initializedDate = useMemo(() => {
-        if (!selectedDate && days.length > 0) {
-            return days[0].date;
-        }
-        return selectedDate;
-    }, [days, selectedDate]);
 
-    // Update state if we initialized from days
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         if (!selectedDate && days.length > 0) {
             setSelectedDate(days[0].date);
         }
-    }, [days]);
+    }, [days, selectedDate]);
 
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [isAddAppointmentOpen, setIsAddAppointmentOpen] = useState(false);
 
-    // Set Global FAB Action
     useEffect(() => {
         setFab(() => setIsAddAppointmentOpen(true), 'event_available');
         return () => hideFab();
     }, [setFab, hideFab]);
 
-    // Get appointments for selected day
     const appointments = useMemo(() => {
         if (!hasMounted || !currentPro || !selectedDate) return [];
         return getDoctorAppointments(currentPro.id, selectedDate)
@@ -119,7 +101,6 @@ export default function SchedulePage() {
             .sort((a, b) => a.time.localeCompare(b.time));
     }, [hasMounted, currentPro, selectedDate, getDoctorAppointments, allAppointments]);
 
-    // Get current date display
     const selectedDateDisplay = useMemo(() => {
         if (!selectedDate) return '';
         const date = new Date(selectedDate);
@@ -161,7 +142,6 @@ export default function SchedulePage() {
                 defaultDate={selectedDate}
             />
 
-            {/* Header */}
             <header className="px-6 pt-12 pb-4 flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Agenda</h1>
@@ -175,7 +155,6 @@ export default function SchedulePage() {
                 </button>
             </header>
 
-            {/* Week Day Selector */}
             <div className="flex gap-3 overflow-x-auto hide-scrollbar px-6 py-4 mb-4">
                 {days.map((day) => (
                     <button
@@ -193,7 +172,6 @@ export default function SchedulePage() {
                         </span>
                         <span className="text-lg font-bold">{day.dayNumber}</span>
 
-                        {/* Dot Indicator */}
                         {day.hasAppointments && (
                             <span className={cn(
                                 "absolute bottom-2 w-1.5 h-1.5 rounded-full",
@@ -204,7 +182,6 @@ export default function SchedulePage() {
                 ))}
             </div>
 
-            {/* Timeline */}
             <div className="relative px-6">
                 {appointments.length > 0 && (
                     <div className="absolute left-[38px] top-0 bottom-0 w-0.5 bg-neutral-100" />
@@ -227,7 +204,6 @@ export default function SchedulePage() {
 
                             return (
                                 <div key={apt.id} className="relative pl-12">
-                                    {/* Timeline Dot */}
                                     <div
                                         className={cn(
                                             "absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-white z-10",
@@ -236,7 +212,6 @@ export default function SchedulePage() {
                                         )}
                                     />
 
-                                    {/* Time Header */}
                                     <div className="flex items-center gap-4 mb-2">
                                         <span className={cn("text-sm font-bold", isActive ? "text-primary" : "text-neutral-400")}>
                                             {apt.time}
@@ -244,7 +219,6 @@ export default function SchedulePage() {
                                         <div className={cn("h-px flex-1", isActive ? "bg-primary/20" : "bg-neutral-100")} />
                                     </div>
 
-                                    {/* Appointment Card */}
                                     <div
                                         className={cn(
                                             "p-4 rounded-[2rem] ios-shadow border",
@@ -280,14 +254,12 @@ export default function SchedulePage() {
                                             </span>
                                         </div>
 
-                                        {/* Reason if exists */}
                                         {apt.reason && (
                                             <p className="text-xs text-neutral-500 mb-3 bg-neutral-50 p-2 rounded-xl">
                                                 <span className="font-semibold">Motivo:</span> {apt.reason}
                                             </p>
                                         )}
 
-                                        {/* Action Buttons */}
                                         <div className="flex gap-2">
                                             {apt.status === 'pending' && (
                                                 <>

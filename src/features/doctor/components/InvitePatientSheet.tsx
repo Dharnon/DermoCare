@@ -41,7 +41,7 @@ export function InvitePatientSheet({ isOpen, onClose }: InvitePatientSheetProps)
             }
 
             // Generate full URL
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+            const baseUrl = 'https://dermo-care.vercel.app';
             const link = `${baseUrl}/auth?invite=${data}`;
             setInviteLink(link);
             setShowQR(true); // Automatically show QR after generation

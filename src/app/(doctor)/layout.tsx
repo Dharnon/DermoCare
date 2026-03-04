@@ -7,12 +7,14 @@ export default function DoctorLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            <PageTransition>
-                <main className="max-w-md mx-auto pb-32">{children}</main>
-            </PageTransition>
+        <div className="min-h-screen bg-background text-foreground flex flex-col items-center">
+            <div className="w-full max-w-md min-h-screen flex flex-col bg-background relative">
+                <PageTransition>
+                    <main className="flex-1 pb-32">{children}</main>
+                </PageTransition>
 
-            <DoctorBottomNav />
+                <DoctorBottomNav />
+            </div>
         </div>
     );
 }
