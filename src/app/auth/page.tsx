@@ -114,10 +114,20 @@ export default function AuthPage() {
 
         try {
             if (isLogin) {
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                // Redirection will be handled by AuthContext or a separate useEffect
-                router.push(role === 'pro' ? '/doctor/dashboard' : '/patient/dashboard');
+                // Fetch the real role from the DB so we always redirect to the
+                // correct dashboard regardless of which UI toggle was selected.
+                if (signInData.user) {
+                    const { data: profileData } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', signInData.user.id)
+                        .single();
+                    router.push(profileData?.role === 'pro' ? '/doctor/dashboard' : '/patient/dashboard');
+                } else {
+                    router.push('/patient/dashboard');
+                }
             } else {
                 // Sign Up logic
                 if (role === 'patient' && !selectedOrg) {
