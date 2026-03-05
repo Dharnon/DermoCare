@@ -37,15 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [setSessionUser]);
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) fetchProfile(session.user.id);
-            setIsLoading(false);
-        });
-
-        // Listen for auth changes
+        // onAuthStateChange fires synchronously with the INITIAL_SESSION event
+        // on mount, which covers the initial session check.  There is no need to
+        // call getSession() separately; doing so creates a race condition where
+        // state is set twice and loading is cleared prematurely.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
             setSession(session);
             setUser(session?.user ?? null);
@@ -53,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 await fetchProfile(session.user.id);
             } else {
                 setProfile(null);
-                // Also clear store user if desired, though store might handle it differently
             }
             setIsLoading(false);
         });

@@ -1,6 +1,21 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+/**
+ * Copy the session cookies that Supabase may have refreshed during getUser()
+ * onto a redirect response so the rotated tokens are never lost.
+ */
+function redirectWithSessionCookies(
+    url: URL | string,
+    supabaseResponse: NextResponse,
+): NextResponse {
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return redirectResponse;
+}
+
 export async function middleware(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
@@ -22,7 +37,7 @@ export async function middleware(request: NextRequest) {
                 getAll() {
                     return request.cookies.getAll();
                 },
-                setAll(cookiesToSet: { name: string, value: string, options?: Partial<import('next/dist/compiled/@edge-runtime/cookies').ResponseCookie> }[]) {
+                setAll(cookiesToSet) {
                     cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     );
@@ -37,74 +52,59 @@ export async function middleware(request: NextRequest) {
         }
     );
 
-    // Get session
+    // getUser() validates the JWT with the Supabase server and may rotate the
+    // session cookies – always use the returned supabaseResponse afterwards so
+    // those refreshed cookies reach the browser.
     const {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Public routes that don't require authentication
     const { pathname } = request.nextUrl;
-    const publicRoutes = ['/', '/auth', '/auth/callback', '/auth/confirm'];
-    const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
 
-    // Handle auth callback
+    // Pass auth callback through immediately (code exchange happens in the route handler)
     if (pathname.startsWith('/auth/callback')) {
         return supabaseResponse;
     }
 
-    // If user is not logged in and trying to access protected routes
+    // Public routes that don't require authentication
+    const publicRoutes = ['/', '/auth', '/auth/confirm', '/auth/pending'];
+    const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
+
+    // Redirect unauthenticated users away from protected routes
     if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone();
         url.pathname = '/auth';
         url.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(url);
+        return redirectWithSessionCookies(url, supabaseResponse);
     }
 
-    // If user is logged in and trying to access auth page
-    if (user && pathname === '/auth') {
-        // Get user profile to determine role
+    if (user) {
+        // Single profile fetch – used for both auth-page redirect and route protection
         const { data: profile } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', user.id)
             .single();
 
-        const url = request.nextUrl.clone();
-        if (profile?.role === 'pro') {
-            url.pathname = '/doctor/dashboard';
-        } else {
-            url.pathname = '/patient/dashboard';
-        }
-        return NextResponse.redirect(url);
-    }
-
-    // Role-based route protection
-    if (user) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('role, is_verified')
-            .eq('id', user.id)
-            .single();
-
-        // Check if user is verified (for production)
-        // Patients need to be verified by a professional
-        if (profile && !profile.is_verified && pathname !== '/auth/pending') {
-            // Allow access but could redirect to pending verification page
-            // For now, we'll allow unverified users with a warning
+        // Redirect away from the login page once already authenticated
+        if (pathname === '/auth') {
+            const url = request.nextUrl.clone();
+            url.pathname = profile?.role === 'pro' ? '/doctor/dashboard' : '/patient/dashboard';
+            return redirectWithSessionCookies(url, supabaseResponse);
         }
 
-        // Protect doctor routes
+        // Protect doctor routes from non-pro users
         if (pathname.startsWith('/doctor') && profile?.role !== 'pro') {
             const url = request.nextUrl.clone();
             url.pathname = '/patient/dashboard';
-            return NextResponse.redirect(url);
+            return redirectWithSessionCookies(url, supabaseResponse);
         }
 
-        // Protect patient routes
+        // Protect patient routes from pro users
         if (pathname.startsWith('/patient') && profile?.role === 'pro') {
             const url = request.nextUrl.clone();
             url.pathname = '/doctor/dashboard';
-            return NextResponse.redirect(url);
+            return redirectWithSessionCookies(url, supabaseResponse);
         }
     }
 
