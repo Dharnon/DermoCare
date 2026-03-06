@@ -19,6 +19,14 @@ export default function InvitePage() {
     const params = useParams();
     const token = params.token as string;
 
+    const getBaseUrl = () => {
+        if (typeof window !== 'undefined') {
+            return window.location.origin;
+        }
+
+        return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    };
+
     useEffect(() => {
         if (token) {
             checkInvitation(token);
@@ -82,13 +90,12 @@ export default function InvitePage() {
         }
 
         try {
-            const productionUrl = 'https://dermo-care.vercel.app';
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
+            const baseUrl = getBaseUrl();
 
             const role = invitation.role || 'patient';
             const redirectPath = role === 'pro' ? '/doctor/dashboard' : '/patient/onboarding';
 
-            const { data, error } = await supabase.auth.signUp({
+            const { error } = await supabase.auth.signUp({
                 email,
                 password,
                 options: {
@@ -97,14 +104,16 @@ export default function InvitePage() {
                         name,
                         role: role,
                         organization_id: invitation.organization_id,
-                        invited_by: invitation.invited_by
+                        invited_by: invitation.invited_by,
+                        invitation_token: invitation.token
                     }
                 }
             });
 
             if (error) throw error;
 
-            setMessage('¡Registrado! Revisa tu email para confirmar tu cuenta y continuar el registro.');
+            router.replace('/auth/pending');
+            return;
         } catch (err: unknown) {
             const errorMessage = err instanceof Error ? err.message : 'Ha ocurrido un error';
             setMessage(errorMessage);

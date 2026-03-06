@@ -9,6 +9,14 @@ export default function PendingVerificationPage() {
     const [resending, setResending] = useState(false);
     const [message, setMessage] = useState('');
 
+    const getBaseUrl = () => {
+        if (typeof window !== 'undefined') {
+            return window.location.origin;
+        }
+
+        return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    };
+
     useEffect(() => {
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -26,8 +34,7 @@ export default function PendingVerificationPage() {
         setMessage('');
 
         try {
-            const productionUrl = 'https://dermo-care.vercel.app';
-            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
+            const baseUrl = getBaseUrl();
             const { error } = await supabase.auth.resend({
                 type: 'signup',
                 email,
@@ -38,8 +45,8 @@ export default function PendingVerificationPage() {
 
             if (error) throw error;
             setMessage('¡Email reenviado! Revisa tu bandeja de entrada.');
-        } catch (err: any) {
-            setMessage(err.message || 'Error al reenviar el email');
+        } catch (err: unknown) {
+            setMessage(err instanceof Error ? err.message : 'Error al reenviar el email');
         } finally {
             setResending(false);
         }

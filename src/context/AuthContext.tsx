@@ -16,11 +16,39 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<ProfileRow | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+function mapProfileToStoreUser(profile: ProfileRow) {
+    return {
+        id: profile.id,
+        role: profile.role,
+        name: profile.name ?? profile.email ?? 'Usuario',
+        avatarUrl: profile.avatar_url ?? undefined,
+        contactInfo: {
+            email: profile.email ?? '',
+        },
+        bio: profile.bio ?? undefined,
+        specialization: profile.specialization ?? undefined,
+        organization_id: profile.organization_id ?? undefined,
+        invitedBy: profile.invited_by ?? undefined,
+    };
+}
+
+interface AuthProviderProps {
+    children: React.ReactNode;
+    initialSession?: Session | null;
+    initialUser?: User | null;
+    initialProfile?: ProfileRow | null;
+}
+
+export function AuthProvider({
+    children,
+    initialSession = null,
+    initialUser = null,
+    initialProfile = null,
+}: AuthProviderProps) {
+    const [session, setSession] = useState<Session | null>(initialSession);
+    const [user, setUser] = useState<User | null>(initialUser);
+    const [profile, setProfile] = useState<ProfileRow | null>(initialProfile);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Use ref for store function to avoid re-triggering effects
     const storeRef = useRef(useDermoCareStore.getState().setSessionUser);
@@ -36,10 +64,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!error && data) {
                 setProfile(data);
                 storeRef.current = useDermoCareStore.getState().setSessionUser;
-                storeRef.current(data as any);
+                storeRef.current(mapProfileToStoreUser(data));
             } else {
-                console.error('Profile fetch error:', error?.message);
-                setProfile(null);
+                // Fallback when relation join is not available due schema/RLS.
+                const { data: basicProfile, error: basicError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (!basicError && basicProfile) {
+                    setProfile(basicProfile as ProfileRow);
+                    storeRef.current = useDermoCareStore.getState().setSessionUser;
+                    storeRef.current(mapProfileToStoreUser(basicProfile as ProfileRow));
+                } else {
+                    console.error('Profile fetch error:', error?.message || basicError?.message);
+                    setProfile(null);
+                }
             }
         } catch (err) {
             console.error('Profile fetch exception:', err);
@@ -48,7 +89,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     useEffect(() => {
+        if (initialProfile) {
+            storeRef.current = useDermoCareStore.getState().setSessionUser;
+            storeRef.current(mapProfileToStoreUser(initialProfile));
+        }
+    }, [initialProfile]);
+
+    useEffect(() => {
         let active = true;
+        setIsLoading(true);
 
         // 1. Get initial session
         supabase.auth.getSession().then(async ({ data: { session: s } }) => {
@@ -58,7 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(s?.user ?? null);
 
             if (s?.user) {
-                await fetchProfile(s.user.id);
+                if (!initialProfile || initialProfile.id !== s.user.id) {
+                    await fetchProfile(s.user.id);
+                }
             }
 
             if (active) setIsLoading(false);
@@ -94,8 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             subscription.unsubscribe();
             clearTimeout(timeout);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [initialProfile]);
 
     const signOut = async () => {
         setProfile(null);

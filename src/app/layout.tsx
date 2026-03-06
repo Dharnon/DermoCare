@@ -5,6 +5,7 @@ import { ServiceWorkerRegister } from "@/components/shared/ServiceWorkerRegister
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeProvider";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import { getInitialAuthState } from "@/lib/auth-server";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -25,11 +26,13 @@ export const viewport: Viewport = {
   themeColor: "#F8C6B9",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { user, profile } = await getInitialAuthState();
+
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
@@ -40,7 +43,7 @@ export default function RootLayout({
       </head>
       <body className={`${plusJakarta.variable} antialiased font-[Plus_Jakarta_Sans]`}>
         <ErrorBoundary>
-          <AuthProvider>
+          <AuthProvider initialUser={user} initialProfile={profile}>
             <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
               {children}
               <ServiceWorkerRegister />

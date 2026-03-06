@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 export default function AuthPage() {
-    const { user, profile, isLoading: authLoading } = useAuth();
+    const { user, profile, isLoading: authLoading, signOut } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [role, setRole] = useState<'patient' | 'pro'>('patient');
     const [email, setEmail] = useState('');
@@ -24,11 +24,15 @@ export default function AuthPage() {
     useEffect(() => {
         if (authLoading) return; // Still checking session
         if (!user) return;       // Not logged in, show form
+        if (!profile?.role) {
+            setMessage('Tu cuenta está iniciada pero el perfil aún no está listo. Cierra sesión y vuelve a entrar.');
+            return;
+        }
 
         // User is logged in, redirect to their dashboard
         const params = new URLSearchParams(window.location.search);
         const redirect = params.get('redirect');
-        if (redirect) {
+        if (redirect && redirect.startsWith('/')) {
             router.replace(redirect);
         } else if (profile?.role === 'pro') {
             router.replace('/doctor/dashboard');
@@ -41,6 +45,14 @@ export default function AuthPage() {
     const [selectedOrg, setSelectedOrg] = useState<{ id: string, name: string } | null>(null);
     const [orgSearch, setOrgSearch] = useState('');
     const [orgResults, setOrgResults] = useState<OrganizationSearchResult[]>([]);
+
+    const getBaseUrl = () => {
+        if (typeof window !== 'undefined') {
+            return window.location.origin;
+        }
+
+        return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    };
 
     const handleOrgSearch = async (val: string) => {
         setOrgSearch(val);
@@ -113,8 +125,7 @@ export default function AuthPage() {
                     throw new Error('Por favor, selecciona tu Farmacia o Centro.');
                 }
 
-                const productionUrl = 'https://dermo-care.vercel.app';
-                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
+                const baseUrl = getBaseUrl();
 
                 const { data, error } = await supabase.auth.signUp({
                     email,
@@ -124,15 +135,17 @@ export default function AuthPage() {
                         data: {
                             name,
                             role,
-                            organization_id: role === 'patient' ? selectedOrg?.id : null
+                            organization_id: role === 'patient' ? selectedOrg?.id : null,
+                            organization_name: role === 'pro' ? orgName.trim() : null
                         }
                     }
                 });
 
                 if (error) throw error;
 
-                if (data.user && role === 'pro' && orgName) {
-                    await organizationService.createOrganization(orgName, data.user.id);
+                if (data.user) {
+                    router.replace('/auth/pending');
+                    return;
                 }
 
                 setMessage('¡Registrado! Revisa tu email para confirmar tu cuenta.');
@@ -155,12 +168,34 @@ export default function AuthPage() {
     }
 
     // If user is already logged in, show spinner while redirecting
-    if (user) {
+    if (user && profile?.role) {
         return (
             <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
                     <p className="text-sm text-slate-400">Redirigiendo...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (user && !profile?.role) {
+        return (
+            <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center p-6">
+                <div className="w-full max-w-sm bg-white p-8 rounded-[2rem] ios-shadow text-center space-y-4">
+                    <h2 className="text-xl font-bold text-neutral-900">Perfil incompleto</h2>
+                    <p className="text-sm text-neutral-500">
+                        Tu sesión está activa pero no encontramos el rol del perfil.
+                    </p>
+                    <button
+                        onClick={async () => {
+                            await signOut();
+                            window.location.href = '/auth';
+                        }}
+                        className="w-full bg-neutral-900 text-white rounded-xl py-3 text-sm font-bold"
+                    >
+                        Cerrar sesión y reintentar
+                    </button>
                 </div>
             </div>
         );

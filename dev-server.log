@@ -1,0 +1,41 @@
+
+> quantum-sun@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.23:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 785ms
+ GET /auth/?redirect=%2Fdoctor%2Fdashboard%2F 200 in 705ms (compile: 477ms, proxy.ts: 48ms, render: 180ms)
+ GET /doctor/dashboard/ 200 in 1240ms (compile: 670ms, proxy.ts: 239ms, render: 330ms)
+ GET /doctor/patients/ 200 in 697ms (compile: 500ms, proxy.ts: 176ms, render: 21ms)
+ GET /doctor/schedule/ 200 in 573ms (compile: 382ms, proxy.ts: 162ms, render: 29ms)
+ GET /doctor/tools/ 200 in 442ms (compile: 276ms, proxy.ts: 146ms, render: 20ms)
+ GET /doctor/patients/ 200 in 166ms (compile: 4ms, proxy.ts: 149ms, render: 13ms)
+ GET /doctor/patients/ 200 in 477ms (compile: 4ms, proxy.ts: 212ms, render: 261ms)
+ GET /doctor/dashboard/ 200 in 193ms (compile: 4ms, proxy.ts: 176ms, render: 12ms)
+ GET /doctor/patients/ 200 in 158ms (compile: 3ms, proxy.ts: 141ms, render: 13ms)
+ GET /doctor/tools/ 200 in 308ms (compile: 18ms, proxy.ts: 260ms, render: 30ms)
+ GET /doctor/settings/ 200 in 497ms (compile: 305ms, proxy.ts: 175ms, render: 17ms)
+ GET /auth/ 200 in 16ms (compile: 3ms, proxy.ts: 3ms, render: 10ms)
+ GET /doctor/dashboard/ 200 in 345ms (compile: 3ms, proxy.ts: 157ms, render: 185ms)
+ GET /doctor/tools/ 200 in 174ms (compile: 3ms, proxy.ts: 156ms, render: 15ms)
+ GET /doctor/settings/ 200 in 162ms (compile: 3ms, proxy.ts: 148ms, render: 12ms)
+ GET /auth/ 200 in 16ms (compile: 3ms, proxy.ts: 3ms, render: 10ms)
+ GET /doctor/dashboard/ 200 in 334ms (compile: 3ms, proxy.ts: 148ms, render: 183ms)
+ GET /doctor/schedule/ 200 in 250ms (compile: 4ms, proxy.ts: 231ms, render: 16ms)
+ GET /doctor/tools/ 200 in 209ms (compile: 3ms, proxy.ts: 192ms, render: 13ms)
+ GET /doctor/tools/templates/ 200 in 474ms (compile: 268ms, proxy.ts: 183ms, render: 23ms)
+ GET /doctor/tools/ 200 in 215ms (compile: 4ms, proxy.ts: 200ms, render: 12ms)
+ GET /doctor/schedule/ 200 in 244ms (compile: 3ms, proxy.ts: 227ms, render: 14ms)
+ GET /doctor/patients/ 200 in 216ms (compile: 3ms, proxy.ts: 201ms, render: 13ms)
+ GET /doctor/dashboard/ 200 in 204ms (compile: 3ms, proxy.ts: 190ms, render: 11ms)
+ GET /doctor/patients/ 200 in 204ms (compile: 3ms, proxy.ts: 191ms, render: 10ms)
+ GET /doctor/patients/f4516dc2-b5cc-4f25-aadc-ed1a25b07e20/ 200 in 1033ms (compile: 785ms, proxy.ts: 230ms, render: 18ms)
+ GET /doctor/patients/f4516dc2-b5cc-4f25-aadc-ed1a25b07e20/ 200 in 434ms (compile: 11ms, proxy.ts: 178ms, render: 246ms)
+ GET /doctor/patients/ 200 in 179ms (compile: 3ms, proxy.ts: 165ms, render: 10ms)
+ GET /doctor/patients/f4516dc2-b5cc-4f25-aadc-ed1a25b07e20/ 200 in 169ms (compile: 10ms, proxy.ts: 145ms, render: 13ms)
+ GET /doctor/schedule/ 200 in 201ms (compile: 3ms, proxy.ts: 185ms, render: 13ms)
