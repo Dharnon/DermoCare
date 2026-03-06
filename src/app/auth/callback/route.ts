@@ -34,29 +34,34 @@ export async function GET(request: NextRequest) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error) {
-            // Get user to determine where to redirect
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
-                // Check if this is an email confirmation
+                // Determine role for redirect (prioritize metadata, fallback to profile query)
+                let role = user.user_metadata?.role;
+
+                if (!role) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', user.id)
+                        .single();
+                    role = profile?.role;
+                }
+
+                // Update email_confirmed_at in profile
                 if (type === 'signup' || type === 'email') {
-                    // Update email_confirmed_at in profile if needed
                     await supabase
                         .from('profiles')
                         .update({ email_confirmed_at: new Date().toISOString() })
                         .eq('id', user.id);
                 }
 
-                // Get role for redirect
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-
-                const redirectUrl = profile?.role === 'pro'
-                    ? '/doctor/dashboard'
-                    : '/patient/dashboard';
+                const redirectUrl = next !== '/'
+                    ? next
+                    : role === 'pro'
+                        ? '/doctor/dashboard'
+                        : '/patient/dashboard';
 
                 return NextResponse.redirect(`${origin}${redirectUrl}`);
             }

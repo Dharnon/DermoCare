@@ -50,6 +50,9 @@ const MemoizedNavItem = memo(NavItem);
 export function PatientBottomNav() {
     const segment = useSelectedLayoutSegment();
 
+    // Hide bottom nav on onboarding screen
+    if (segment === 'onboarding') return null;
+
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
             <nav

@@ -38,9 +38,10 @@ export const invitationService = {
         }
 
         // Generate invite URL
-        const baseUrl = 'https://dermo-care.vercel.app';
+        const productionUrl = 'https://dermo-care.vercel.app';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
 
-        const inviteUrl = `${baseUrl}/auth?invite=${data.token}`;
+        const inviteUrl = `${baseUrl}/invite/${data.token}`;
 
         return { invitation: data, inviteUrl, error: null };
     },

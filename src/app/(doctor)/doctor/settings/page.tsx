@@ -22,20 +22,41 @@ export default function SettingsPage() {
     }, [profile]);
 
     const handleSave = async () => {
-        if (!profile?.organization_id) return;
         setIsLoading(true);
 
         try {
-            const { error } = await supabase
-                .from('organizations')
-                .update({ name: orgName })
-                .eq('id', profile.organization_id);
+            if (!profile?.organization_id) {
+                // If the user doesn't have an organization yet, create one
+                const { data: org, error: createError } = await supabase
+                    .from('organizations')
+                    .insert({ name: orgName, slug: orgName.toLowerCase().replace(/\s+/g, '-') })
+                    .select()
+                    .single();
 
-            if (error) throw error;
-            setIsEditing(false);
-            // Optionally refresh profile/context
+                if (createError) throw createError;
+
+                // Link the profile to the new organization
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .update({ organization_id: org.id })
+                    .eq('id', profile?.id || '');
+
+                if (profileError) throw profileError;
+
+                alert('Organización creada y vinculada correctamente. Recarga la página para ver los cambios.');
+                window.location.reload();
+            } else {
+                // Otherwise, just update the existing one
+                const { error } = await supabase
+                    .from('organizations')
+                    .update({ name: orgName })
+                    .eq('id', profile.organization_id);
+
+                if (error) throw error;
+                setIsEditing(false);
+            }
         } catch (err) {
-            console.error('Error updating organization:', err);
+            console.error('Error updating/creating organization:', err);
             alert('Error al actualizar la organización');
         } finally {
             setIsLoading(false);
@@ -174,7 +195,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Team Section */}
-                <TeamManagement organizationId={profile.organization_id} />
+                <TeamManagement organizationId={profile.organization_id} currentUserId={profile.id} currentUserRole={profile.role} />
 
                 <div className="pt-8">
                     <button
@@ -241,10 +262,11 @@ function AvatarSelectionSheet({ isOpen, onClose, currentAvatar, onSelect }: {
     );
 }
 
-function TeamManagement({ organizationId }: { organizationId: string | null }) {
+function TeamManagement({ organizationId, currentUserId, currentUserRole }: { organizationId: string | null, currentUserId: string, currentUserRole: string }) {
     const [members, setMembers] = useState<any[]>([]);
     const [inviteLink, setInviteLink] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isRemoving, setIsRemoving] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -255,8 +277,29 @@ function TeamManagement({ organizationId }: { organizationId: string | null }) {
                 .order('created_at');
             if (data) setMembers(data);
         };
-        fetchMembers();
+        if (organizationId) {
+            fetchMembers();
+        }
     }, [organizationId]);
+
+    const handleRemoveMember = async (memberId: string) => {
+        if (!confirm('¿Seguro que quieres expulsar a este miembro de la clínica?')) return;
+        setIsRemoving(memberId);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ organization_id: null })
+                .eq('id', memberId);
+
+            if (error) throw error;
+            setMembers((prev) => prev.filter((m) => m.id !== memberId));
+        } catch (err) {
+            console.error('Error removing member:', err);
+            alert('Error al expulsar al miembro');
+        } finally {
+            setIsRemoving(null);
+        }
+    };
 
     const generateTeamInvite = async () => {
         setIsLoading(true);
@@ -265,7 +308,9 @@ function TeamManagement({ organizationId }: { organizationId: string | null }) {
                 p_org_id: organizationId
             });
             if (error) throw error;
-            const link = `https://dermo-care.vercel.app/auth?invite=${data}`;
+            const productionUrl = 'https://dermo-care.vercel.app';
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
+            const link = `${baseUrl}/invite/${data}`;
             setInviteLink(link);
         } catch (err) {
             console.error(err);
@@ -297,6 +342,18 @@ function TeamManagement({ organizationId }: { organizationId: string | null }) {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                             {member.role === 'admin' ? 'Admin' : 'Pro'}
                         </span>
+                        {currentUserRole === 'admin' && member.id !== currentUserId && (
+                            <button
+                                onClick={() => handleRemoveMember(member.id)}
+                                disabled={isRemoving === member.id}
+                                className="ml-2 w-8 h-8 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                title="Expulsar miembro"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">
+                                    {isRemoving === member.id ? 'hourglass_empty' : 'person_remove'}
+                                </span>
+                            </button>
+                        )}
                     </div>
                 ))}
             </div>

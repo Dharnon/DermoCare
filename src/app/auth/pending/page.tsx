@@ -26,7 +26,8 @@ export default function PendingVerificationPage() {
         setMessage('');
 
         try {
-            const baseUrl = 'https://dermo-care.vercel.app';
+            const productionUrl = 'https://dermo-care.vercel.app';
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
             const { error } = await supabase.auth.resend({
                 type: 'signup',
                 email,

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 import type { ProfileRow } from '@/lib/types';
 import { useDermoCareStore } from '@/lib/store';
 
@@ -21,47 +21,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<ProfileRow | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const setSessionUser = useDermoCareStore((state) => state.setSessionUser);
 
-    const fetchProfile = useCallback(async (userId: string) => {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*, organizations(*)')
-            .eq('id', userId)
-            .single();
+    // Use ref for store function to avoid re-triggering effects
+    const storeRef = useRef(useDermoCareStore.getState().setSessionUser);
 
-        if (!error && data) {
-            setProfile(data);
-            setSessionUser(data as any);
+    async function fetchProfile(userId: string) {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*, organizations(*)')
+                .eq('id', userId)
+                .single();
+
+            if (!error && data) {
+                setProfile(data);
+                storeRef.current = useDermoCareStore.getState().setSessionUser;
+                storeRef.current(data as any);
+            } else {
+                console.error('Profile fetch error:', error?.message);
+                setProfile(null);
+            }
+        } catch (err) {
+            console.error('Profile fetch exception:', err);
+            setProfile(null);
         }
-    }, [setSessionUser]);
+    }
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) fetchProfile(session.user.id);
-            setIsLoading(false);
-        });
+        let active = true;
 
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                await fetchProfile(session.user.id);
-            } else {
-                setProfile(null);
-                // Also clear store user if desired, though store might handle it differently
+        // 1. Get initial session
+        supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+            if (!active) return;
+
+            setSession(s);
+            setUser(s?.user ?? null);
+
+            if (s?.user) {
+                await fetchProfile(s.user.id);
             }
-            setIsLoading(false);
+
+            if (active) setIsLoading(false);
+        }).catch(() => {
+            if (active) setIsLoading(false);
         });
 
-        return () => subscription.unsubscribe();
-    }, [fetchProfile]);
+        // 2. Listen for changes (login, logout, token refresh)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (_event, s) => {
+                if (!active) return;
+
+                setSession(s);
+                setUser(s?.user ?? null);
+
+                if (s?.user) {
+                    await fetchProfile(s.user.id);
+                } else {
+                    setProfile(null);
+                }
+
+                if (active) setIsLoading(false);
+            }
+        );
+
+        // 3. Safety net: never stay loading more than 8 seconds
+        const timeout = setTimeout(() => {
+            if (active) setIsLoading(false);
+        }, 8000);
+
+        return () => {
+            active = false;
+            subscription.unsubscribe();
+            clearTimeout(timeout);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const signOut = async () => {
+        setProfile(null);
+        setUser(null);
+        setSession(null);
         await supabase.auth.signOut();
     };
 

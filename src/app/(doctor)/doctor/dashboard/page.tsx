@@ -1,17 +1,33 @@
 'use client';
 
 import { useDermoCareStore } from '@/lib/store';
-import { useAuth } from '@/context/AuthContext'; // Added
+import { useAuth } from '@/context/AuthContext';
 import { StatsCard } from '@/features/doctor/components/stats-card';
 import { PatientAdherenceList } from '@/features/doctor/components/PatientAdherenceList';
 import { InvitePatientSheet } from '@/features/doctor/components/InvitePatientSheet';
 import { useState, useEffect } from 'react';
 import { useUIStore } from '@/lib/ui-store';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default function DoctorDashboardPage() {
+    const router = useRouter();
+    const { profile, isLoading: authLoading } = useAuth();
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
+    // Redirect to auth if not authenticated
+    useEffect(() => {
+        if (hasMounted && !authLoading && !profile) {
+            router.push('/auth');
+        }
+    }, [hasMounted, authLoading, profile, router]);
+
     const {
         currentPro,
         patients,
@@ -20,7 +36,6 @@ export default function DoctorDashboardPage() {
         subscribeToDoctorEvents,
         unsubscribeFromAll
     } = useDermoCareStore();
-    const { profile } = useAuth(); // Added
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const { setFab, hideFab } = useUIStore();
 

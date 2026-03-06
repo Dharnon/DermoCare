@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import { organizationService } from '@/lib/services';
 import type { OrganizationSearchResult } from '@/lib/types';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AuthPage() {
+    const { user, profile, isLoading: authLoading } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [role, setRole] = useState<'patient' | 'pro'>('patient');
     const [email, setEmail] = useState('');
@@ -16,39 +18,24 @@ export default function AuthPage() {
     const [orgName, setOrgName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
-    const [invitedBy, setInvitedBy] = useState<string | null>(null);
     const router = useRouter();
 
-    // Check for invite token on mount
+    // Redirect if already logged in
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const inviteToken = urlParams.get('invite');
-        if (inviteToken) {
-            setIsLogin(false); // Switch to register
-            setRole('patient'); // Default to patient for invites
-            resolveInvite(inviteToken);
-        }
-    }, []);
+        if (authLoading) return; // Still checking session
+        if (!user) return;       // Not logged in, show form
 
-    const resolveInvite = async (token: string) => {
-        try {
-            const { data, error } = await supabase
-                .from('invitations')
-                .select('*, organization:organizations(*)')
-                .eq('token', token)
-                .single();
-
-            if (error) throw error;
-            if (data && data.organization) {
-                setSelectedOrg(data.organization);
-            }
-            if (data && data.invited_by) {
-                setInvitedBy(data.invited_by);
-            }
-        } catch (err) {
-            console.error('Invite token invalid:', err);
+        // User is logged in, redirect to their dashboard
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirect');
+        if (redirect) {
+            router.replace(redirect);
+        } else if (profile?.role === 'pro') {
+            router.replace('/doctor/dashboard');
+        } else {
+            router.replace('/patient/dashboard');
         }
-    };
+    }, [authLoading, user, profile, router]);
 
     // Organization search for patients
     const [selectedOrg, setSelectedOrg] = useState<{ id: string, name: string } | null>(null);
@@ -78,9 +65,9 @@ export default function AuthPage() {
         return null;
     };
 
-    const validateName = (name: string): string | null => {
-        if (name.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres';
-        if (name.trim().length > 100) return 'El nombre es demasiado largo';
+    const validateName = (n: string): string | null => {
+        if (n.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres';
+        if (n.trim().length > 100) return 'El nombre es demasiado largo';
         return null;
     };
 
@@ -114,18 +101,20 @@ export default function AuthPage() {
 
         try {
             if (isLogin) {
+                // --- LOGIN ---
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                // Redirection will be handled by AuthContext or a separate useEffect
-                router.push(role === 'pro' ? '/doctor/dashboard' : '/patient/dashboard');
+                // AuthContext's onAuthStateChange will update user/profile,
+                // then the useEffect above will redirect automatically.
+                // No need to call router.push here.
             } else {
-                // Sign Up logic
+                // --- SIGN UP ---
                 if (role === 'patient' && !selectedOrg) {
                     throw new Error('Por favor, selecciona tu Farmacia o Centro.');
                 }
 
-                // Get base URL for email redirect
-                const baseUrl = 'https://dermo-care.vercel.app';
+                const productionUrl = 'https://dermo-care.vercel.app';
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || productionUrl;
 
                 const { data, error } = await supabase.auth.signUp({
                     email,
@@ -135,8 +124,7 @@ export default function AuthPage() {
                         data: {
                             name,
                             role,
-                            organization_id: role === 'patient' ? selectedOrg?.id : null,
-                            invited_by: invitedBy
+                            organization_id: role === 'patient' ? selectedOrg?.id : null
                         }
                     }
                 });
@@ -147,7 +135,6 @@ export default function AuthPage() {
                     await organizationService.createOrganization(orgName, data.user.id);
                 }
 
-                // Assignment and Organization are now handled by handle_new_user trigger via metadata
                 setMessage('¡Registrado! Revisa tu email para confirmar tu cuenta.');
             }
         } catch (err: unknown) {
@@ -157,6 +144,27 @@ export default function AuthPage() {
             setIsLoading(false);
         }
     };
+
+    // Show spinner while auth is still loading (checking existing session)
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+            </div>
+        );
+    }
+
+    // If user is already logged in, show spinner while redirecting
+    if (user) {
+        return (
+            <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+                    <p className="text-sm text-slate-400">Redirigiendo...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center p-6">
@@ -170,20 +178,22 @@ export default function AuthPage() {
 
                 <div className="bg-white p-8 rounded-[2.5rem] ios-shadow space-y-6">
                     {/* Role Selector */}
-                    <div className="flex p-1 bg-neutral-100 rounded-2xl">
-                        <button
-                            onClick={() => setRole('patient')}
-                            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${role === 'patient' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}
-                        >
-                            Paciente
-                        </button>
-                        <button
-                            onClick={() => setRole('pro')}
-                            className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${role === 'pro' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}
-                        >
-                            Profesional
-                        </button>
-                    </div>
+                    {!isLogin && (
+                        <div className="flex p-1 bg-neutral-100 rounded-2xl">
+                            <button
+                                onClick={() => setRole('patient')}
+                                className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${role === 'patient' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}
+                            >
+                                Paciente
+                            </button>
+                            <button
+                                onClick={() => setRole('pro')}
+                                className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${role === 'pro' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500'}`}
+                            >
+                                Profesional
+                            </button>
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {!isLogin && (

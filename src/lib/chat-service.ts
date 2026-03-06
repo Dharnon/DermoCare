@@ -21,7 +21,7 @@ export const chatService = {
         const { data, error } = await supabase
             .from('chat_messages')
             .select('*')
-            .or(`and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
+            .or(`(sender_id.eq.${userId1},receiver_id.eq.${userId2}),(sender_id.eq.${userId2},receiver_id.eq.${userId1})`)
             .order('timestamp', { ascending: true });
 
         if (error) {

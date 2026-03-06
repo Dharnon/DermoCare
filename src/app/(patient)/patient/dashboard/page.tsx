@@ -27,13 +27,20 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 export default function PatientDashboard() {
     const [hasMounted, setHasMounted] = useState(false);
     const router = useRouter();
-    const { profile } = useAuth();
+    const { profile, isLoading: authLoading } = useAuth();
 
     // Hydration fix - eslint-disable for common SSR pattern
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         setHasMounted(true);
     }, []);
+
+    // Redirect to auth if not authenticated
+    useEffect(() => {
+        if (hasMounted && !authLoading && !profile) {
+            router.push('/auth');
+        }
+    }, [hasMounted, authLoading, profile, router]);
 
     const {
         currentPatient,

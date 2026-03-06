@@ -81,22 +81,26 @@ export function DoctorBottomNav() {
                     {/* Contextual Action Button */}
                     <div className="flex justify-center">
                         <div className="-mt-12">
-                            <button
-                                onClick={() => fabAction?.()}
-                                disabled={!fabAction}
-                                className={cn(
-                                    'w-14 h-14 rounded-full',
-                                    'flex items-center justify-center',
-                                    'shadow-lg shadow-primary/30',
-                                    'active:scale-90 transition-all duration-300',
-                                    fabAction
-                                        ? 'bg-primary text-white translate-y-0 opacity-100'
-                                        : 'bg-transparent text-transparent translate-y-4 opacity-0 pointer-events-none'
-                                )}
-                                aria-label="Acción principal"
-                            >
-                                <span className="material-symbols-outlined text-3xl">{fabIcon}</span>
-                            </button>
+                            {fabAction ? (
+                                <button
+                                    onClick={() => fabAction?.()}
+                                    className={cn(
+                                        'w-14 h-14 rounded-full',
+                                        'flex items-center justify-center',
+                                        'shadow-lg shadow-primary/30',
+                                        'active:scale-90 transition-all duration-300',
+                                        'bg-primary text-white translate-y-0 opacity-100'
+                                    )}
+                                    aria-label="Acción principal"
+                                >
+                                    <span className="material-symbols-outlined text-3xl">{fabIcon}</span>
+                                </button>
+                            ) : (
+                                <div
+                                    className="w-14 h-14 rounded-full bg-transparent"
+                                    aria-hidden="true"
+                                />
+                            )}
                         </div>
                     </div>
 

@@ -79,11 +79,11 @@ body {
 
 /* Sparkline gradient from wireframe */
 .sparkline-gradient {
-  background: linear-gradient(90deg, #F8C6B9 0%, #F4A492 100%);
+  background-image: linear-gradient(90deg, #F8C6B9 0%, #F4A492 100%);
 }
 
 .bg-gradient-peach {
-  background: linear-gradient(90deg, #F8C6B9 0%, #F4A492 100%);
+  background-image: linear-gradient(90deg, #F8C6B9 0%, #F4A492 100%);
 }
 
 /* Card styles matching wireframe */
